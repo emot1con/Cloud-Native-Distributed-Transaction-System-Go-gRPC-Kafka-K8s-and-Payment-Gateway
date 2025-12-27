@@ -21,11 +21,14 @@ func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
 }
 
 func (p *ProductHandler) RegisterRoutes(r *gin.Engine) {
+	// Public routes (no auth required)
+	r.GET("/product/", p.ListProducts)
+
+	// Protected routes (auth required)
 	productRoutes := r.Group("/product")
 	productRoutes.Use(auth.ProtectedEndpoint())
 
 	productRoutes.POST("/", p.CreateProduct)
-	productRoutes.GET("/", p.ListProducts)
 	productRoutes.PUT("/", p.UpdateProduct)
 	productRoutes.DELETE("/", p.DeleteProduct)
 }

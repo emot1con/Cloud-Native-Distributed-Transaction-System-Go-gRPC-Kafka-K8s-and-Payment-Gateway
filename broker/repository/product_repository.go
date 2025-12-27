@@ -3,6 +3,7 @@ package repository
 import (
 	"broker/proto"
 	"context"
+	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -23,11 +24,16 @@ type ProductRepositoryImpl struct {
 }
 
 func NewProductRepository() *ProductRepositoryImpl {
-	conn, err := grpc.NewClient("product-service:40001", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		logrus.Fatalf("Failed to connect: %v", err)
+	addr := os.Getenv("PRODUCT_SERVICE_ADDR")
+	if addr == "" {
+		addr = "product-service:40001"
 	}
-	logrus.Info("Connected to product service")
+
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logrus.Fatalf("Failed to connect to product service: %v", err)
+	}
+	logrus.Infof("Connected to product service at %s", addr)
 
 	client := proto.NewProductServiceClient(conn)
 	return &ProductRepositoryImpl{client: client}

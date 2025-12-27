@@ -3,6 +3,7 @@ package repository
 import (
 	"broker/proto"
 	"context"
+	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -28,11 +29,16 @@ type UserRepositoryImpl struct {
 }
 
 func NewUserRepository() *UserRepositoryImpl {
-	conn, err := grpc.NewClient("user-service:50001", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		logrus.Fatalf("Failed to connect: %v", err)
+	addr := os.Getenv("USER_SERVICE_ADDR")
+	if addr == "" {
+		addr = "user-service:50001"
 	}
-	logrus.Info("Connected to user service")
+
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logrus.Fatalf("Failed to connect to user service: %v", err)
+	}
+	logrus.Infof("Connected to user service at %s", addr)
 
 	client := proto.NewAuthServiceClient(conn)
 

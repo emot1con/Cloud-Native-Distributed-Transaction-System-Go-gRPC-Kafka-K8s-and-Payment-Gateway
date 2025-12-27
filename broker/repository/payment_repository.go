@@ -3,6 +3,7 @@ package repository
 import (
 	"broker/proto"
 	"context"
+	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -20,12 +21,17 @@ type PaymentRepositoryImpl struct {
 }
 
 func NewPaymentRepository() *PaymentRepositoryImpl {
-	conn, err := grpc.NewClient("payment-service:60001", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		logrus.Fatalf("Failed to connect: %v", err)
+	addr := os.Getenv("PAYMENT_SERVICE_ADDR")
+	if addr == "" {
+		addr = "payment-service:60001"
 	}
 
-	logrus.Info("Connected to payment service")
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logrus.Fatalf("Failed to connect to payment service: %v", err)
+	}
+
+	logrus.Infof("Connected to payment service at %s", addr)
 	client := proto.NewPaymentServiceClient(conn)
 
 	return &PaymentRepositoryImpl{client: client}

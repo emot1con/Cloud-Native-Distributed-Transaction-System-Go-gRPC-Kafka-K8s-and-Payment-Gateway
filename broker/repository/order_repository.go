@@ -3,6 +3,7 @@ package repository
 import (
 	"broker/proto"
 	"context"
+	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -20,12 +21,17 @@ type OrderRepositoryImpl struct {
 }
 
 func NewOrderRepository() *OrderRepositoryImpl {
-	conn, err := grpc.NewClient("order-service:30001", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		logrus.Fatalf("Failed to connect: %v", err)
+	addr := os.Getenv("ORDER_SERVICE_ADDR")
+	if addr == "" {
+		addr = "order-service:30001"
 	}
 
-	logrus.Info("Connected to product service")
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logrus.Fatalf("Failed to connect to order service: %v", err)
+	}
+
+	logrus.Infof("Connected to order service at %s", addr)
 	client := proto.NewOrderServiceClient(conn)
 
 	return &OrderRepositoryImpl{client: client}
