@@ -12,6 +12,7 @@ type PaymentRepository interface {
 	CreatePayment(payload *proto.CreatePaymentRequest, tx *sql.Tx) (int, error)
 	UpdatePayment(ctx context.Context, status string, ID int, tx *sql.Tx) error
 	GetByID(ctx context.Context, ID int, tx *sql.Tx) (*proto.OrderPayment, error)
+	GetByOrderID(ctx context.Context, orderID int, db *sql.DB) (*proto.OrderPayment, error)
 	DeletePayment(ctx context.Context, ID int, tx *sql.Tx) error
 }
 
@@ -71,4 +72,26 @@ func (u *PaymentRepositoryImpl) DeletePayment(ctx context.Context, ID int, tx *s
 	}
 
 	return nil
+}
+
+func (u *PaymentRepositoryImpl) GetByOrderID(ctx context.Context, orderID int, db *sql.DB) (*proto.OrderPayment, error) {
+	SQL := "SELECT id, order_id, user_id, status, total_price, created_at, updated_at FROM payments WHERE order_id = $1"
+	row := db.QueryRowContext(ctx, SQL, orderID)
+
+	orderPayment := &proto.OrderPayment{}
+	if err := row.Scan(
+		&orderPayment.Id,
+		&orderPayment.OrderId,
+		&orderPayment.UserId,
+		&orderPayment.Status,
+		&orderPayment.TotalPrice,
+		&orderPayment.CreatedAt,
+		&orderPayment.UpdatedAt,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("payment not found for this order")
+		}
+		return nil, err
+	}
+	return orderPayment, nil
 }

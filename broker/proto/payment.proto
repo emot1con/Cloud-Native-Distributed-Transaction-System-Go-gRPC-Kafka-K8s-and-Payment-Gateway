@@ -26,9 +26,14 @@ message PaymentTransaction {
   double money = 2;
 }
 
+message GetPaymentByOrderIdRequest {
+  int32 order_id = 1;
+}
+
 message EmptyPayment {}
 
 service PaymentService {
     rpc PayOrder (CreatePaymentRequest) returns (OrderPayment);
     rpc Transaction (PaymentTransaction) returns (EmptyPayment);
+    rpc GetPaymentByOrderId (GetPaymentByOrderIdRequest) returns (OrderPayment);
 }

@@ -1,54 +1,77 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { CreditCard, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loading } from '@/components/ui/loading';
 import { orderService } from '@/services/order-service';
 import { paymentService } from '@/services/payment-service';
-import { formatPrice, formatDate, getStatusColor, cn } from '@/lib/utils';
+import { formatPrice, formatDate } from '@/lib/utils';
 import type { OrderItem } from '@/types';
 
-export default function OrderDetailPage() {
+export default function OrderPaymentPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = Number(params.id);
-  const [paymentId, setPaymentId] = useState('');
   const [money, setMoney] = useState('');
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   
-  const { data: order, isLoading, error, refetch } = useQuery({
-    queryKey: ['order', orderId],
-    queryFn: () => orderService.getOrder(orderId),
+  // Fetch all orders and find the specific one
+  const { data: ordersData, isLoading, error, refetch } = useQuery({
+    queryKey: ['orders', 0],
+    queryFn: () => orderService.getOrders(0),
     enabled: !isNaN(orderId),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+
+  // Fetch payment info for this order
+  const { data: paymentData, isLoading: isPaymentDataLoading } = useQuery({
+    queryKey: ['payment', orderId],
+    queryFn: () => paymentService.getPaymentByOrderId(orderId),
+    enabled: !isNaN(orderId),
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
   
+  // Find the specific order from the list
+  const order = useMemo(() => {
+    if (!ordersData?.orders) return null;
+    return ordersData.orders.find(o => o.id === orderId);
+  }, [ordersData, orderId]);
+
   const handlePayment = async () => {
-    if (!paymentId || !money) {
-      toast.error('Please fill in payment details');
+    if (!money) {
+      toast.error('Please enter the payment amount');
+      return;
+    }
+
+    if (!paymentData?.id) {
+      toast.error('Payment not found for this order');
       return;
     }
     
     setIsPaymentLoading(true);
     try {
       await paymentService.processTransaction({
-        payment_id: Number(paymentId),
+        payment_id: paymentData.id,
         money: Number(money),
       });
-      toast.success('Payment successful!');
+      toast.success('Payment successful! Your order is being processed.');
       refetch();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Payment failed');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Payment failed');
     } finally {
       setIsPaymentLoading(false);
     }
   };
   
-  if (isLoading) {
+  if (isLoading || isPaymentDataLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Loading size="lg" text="Loading order..." />
@@ -59,111 +82,120 @@ export default function OrderDetailPage() {
   if (error || !order) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <p className="text-red-600 mb-4">Failed to load order</p>
+        <p className="text-red-600 mb-4">Order not found</p>
         <Button onClick={() => router.push('/orders')}>
           Back to Orders
         </Button>
       </div>
     );
   }
+
+  // If order is already paid, show success message
+  if (order.status.toLowerCase() !== 'pending') {
+    return (
+      <div className="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Order #{order.id} - {order.status}
+          </h1>
+          <p className="text-gray-600 mb-2">
+            Total: {formatPrice(order.total_price)}
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            {formatDate(order.created_at)}
+          </p>
+          <Link href="/orders">
+            <Button className="w-full">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to My Orders
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
   
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Order #{order.id}
-        </h1>
-        <span className={cn(
-          'px-3 py-1 rounded-full text-sm font-medium',
-          getStatusColor(order.status)
-        )}>
-          {order.status}
-        </span>
-      </div>
-      
-      {/* Order Info */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Details</h2>
-        
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-gray-500">Order ID</p>
-            <p className="font-medium">#{order.id}</p>
+    <div className="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Link href="/orders" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6">
+        <ArrowLeft className="w-4 h-4 mr-1" />
+        Back to My Orders
+      </Link>
+
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Header */}
+        <div className="bg-primary-600 text-white p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <CreditCard className="w-6 h-6" />
+            <h1 className="text-xl font-bold">Complete Payment</h1>
           </div>
-          <div>
-            <p className="text-gray-500">Status</p>
-            <p className="font-medium capitalize">{order.status}</p>
-          </div>
-          <div>
-            <p className="text-gray-500">Total Price</p>
-            <p className="font-medium text-primary-600">{formatPrice(order.total_price)}</p>
-          </div>
-          <div>
-            <p className="text-gray-500">Created At</p>
-            <p className="font-medium">{formatDate(order.created_at)}</p>
-          </div>
+          <p className="text-primary-100 text-sm">Order #{order.id}</p>
         </div>
-      </div>
-      
-      {/* Order Items */}
-      {order.order_items && order.order_items.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Items</h2>
+
+        {/* Order Summary */}
+        <div className="p-6 border-b">
+          <h2 className="text-sm font-medium text-gray-500 uppercase mb-3">Order Summary</h2>
           
-          <div className="divide-y">
-            {order.order_items.map((item: OrderItem) => (
-              <div key={item.id} className="py-3 flex justify-between">
-                <div>
-                  <p className="font-medium">Product #{item.product_id}</p>
-                  <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+          {order.order_items && order.order_items.length > 0 ? (
+            <div className="space-y-2 mb-4">
+              {order.order_items.map((item: OrderItem) => (
+                <div key={item.id} className="flex justify-between text-sm">
+                  <span className="text-gray-600">
+                    Product #{item.product_id} × {item.quantity}
+                  </span>
+                  <span className="font-medium">{formatPrice(item.price)}</span>
                 </div>
-                <p className="font-medium">{formatPrice(item.price)}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 mb-4">Order items not available</p>
+          )}
+
+          <div className="flex justify-between pt-3 border-t">
+            <span className="font-semibold text-gray-900">Total</span>
+            <span className="font-bold text-xl text-primary-600">
+              {formatPrice(order.total_price)}
+            </span>
           </div>
         </div>
-      )}
-      
-      {/* Payment Form - Show only for pending orders */}
-      {order.status === 'Pending' && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Make Payment</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Enter your payment ID and amount to complete the order.
-          </p>
-          
+
+        {/* Payment Form */}
+        <div className="p-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-800">
+              <strong>Payment ID:</strong> {paymentData?.id || 'Loading...'}<br />
+              <strong>Status:</strong> {paymentData?.status || 'Loading...'}
+            </p>
+          </div>
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-yellow-800">
+              <strong>💡 Tip:</strong> Enter the exact amount shown above ({formatPrice(order.total_price)}) to complete payment.
+            </p>
+          </div>
+
           <div className="space-y-4">
             <Input
-              label="Payment ID"
+              label="Payment Amount (IDR)"
               type="number"
-              placeholder="Enter payment ID"
-              value={paymentId}
-              onChange={(e) => setPaymentId(e.target.value)}
-            />
-            <Input
-              label="Amount"
-              type="number"
-              placeholder="Enter payment amount"
+              placeholder={String(order.total_price)}
               value={money}
               onChange={(e) => setMoney(e.target.value)}
-              helperText={`Order total: ${formatPrice(order.total_price)}`}
             />
             <Button
               className="w-full"
+              size="lg"
               onClick={handlePayment}
               isLoading={isPaymentLoading}
+              disabled={!paymentData?.id}
             >
-              Complete Payment
+              <CreditCard className="w-5 h-5 mr-2" />
+              Pay {formatPrice(order.total_price)}
             </Button>
           </div>
         </div>
-      )}
-      
-      <Link href="/orders">
-        <Button variant="outline" className="w-full">
-          Back to Orders
-        </Button>
-      </Link>
+      </div>
     </div>
   );
 }

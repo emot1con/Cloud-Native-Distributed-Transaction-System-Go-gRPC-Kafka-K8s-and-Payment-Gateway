@@ -3,7 +3,7 @@ import { config } from '@/lib/config';
 import type {
   CreateOrderRequest,
   OrderResponse,
-  Order,
+  OrdersResponse,
 } from '@/types';
 
 export const orderService = {
@@ -16,10 +16,11 @@ export const orderService = {
   },
 
   /**
-   * Get order by ID
+   * Get orders for current user (uses JWT token for user identification)
+   * @param offset - Pagination offset (default: 0)
    */
-  getOrder: async (orderId: number): Promise<Order> => {
-    const response = await api.get(`${config.endpoints.orders}?order_id=${orderId}`);
+  getOrders: async (offset: number = 0): Promise<OrdersResponse> => {
+    const response = await api.get(`${config.endpoints.orders}?offset=${offset}`);
     return response.data;
   },
 };

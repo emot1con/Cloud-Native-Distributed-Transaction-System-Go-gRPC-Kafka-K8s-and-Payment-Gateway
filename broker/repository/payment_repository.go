@@ -14,6 +14,7 @@ import (
 type PaymentRepository interface {
 	PayOrder(*proto.CreatePaymentRequest) (*proto.OrderPayment, error)
 	Transaction(*proto.PaymentTransaction) (*proto.EmptyPayment, error)
+	GetPaymentByOrderId(orderID int32) (*proto.OrderPayment, error)
 }
 
 type PaymentRepositoryImpl struct {
@@ -49,4 +50,11 @@ func (u *PaymentRepositoryImpl) Transaction(payload *proto.PaymentTransaction) (
 	defer cancel()
 
 	return u.client.Transaction(ctx, payload)
+}
+
+func (u *PaymentRepositoryImpl) GetPaymentByOrderId(orderID int32) (*proto.OrderPayment, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return u.client.GetPaymentByOrderId(ctx, &proto.GetPaymentByOrderIdRequest{OrderId: orderID})
 }

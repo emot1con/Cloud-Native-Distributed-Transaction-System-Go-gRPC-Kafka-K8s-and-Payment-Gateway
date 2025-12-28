@@ -69,7 +69,7 @@ export interface Order {
   id: number;
   user_id: number;
   total_price: number;
-  status: 'Pending' | 'paid' | 'failed';
+  status: string; // 'pending' | 'paid' | 'failed' - case insensitive
   created_at: string;
   updated_at: string;
   order_items?: OrderItem[];
@@ -86,6 +86,10 @@ export interface CreateOrderRequest {
 
 export interface OrderResponse {
   order: Order;
+}
+
+export interface OrdersResponse {
+  orders: Order[];
 }
 
 // ============ Payment ============

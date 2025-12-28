@@ -41,6 +41,15 @@ func (u *PaymentGRPCServer) Transaction(ctx context.Context, req *proto.PaymentT
 	return &proto.EmptyPayment{}, nil
 }
 
+func (u *PaymentGRPCServer) GetPaymentByOrderId(ctx context.Context, req *proto.GetPaymentByOrderIdRequest) (*proto.OrderPayment, error) {
+	payment, err := u.service.GetPaymentByOrderId(int(req.OrderId))
+	if err != nil {
+		return nil, err
+	}
+
+	return payment, nil
+}
+
 func GRPCListen(addr []string, topic []string, groupID string) {
 	DB, err := db.Connect()
 	if err != nil {

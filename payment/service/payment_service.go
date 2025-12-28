@@ -100,3 +100,8 @@ func (u *PaymentService) Transaction(transaction *proto.PaymentTransaction) erro
 
 	return nil
 }
+
+func (u *PaymentService) GetPaymentByOrderId(orderID int) (*proto.OrderPayment, error) {
+	logrus.Infof("get payment by order id: %d", orderID)
+	return u.paymentRepo.GetByOrderID(u.ctx, orderID, u.DB)
+}

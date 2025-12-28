@@ -3,15 +3,28 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Package, Search } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Loading } from '@/components/ui/loading';
 import { useAuthStore } from '@/store';
+import { orderService } from '@/services/order-service';
+import { formatPrice, formatDate, getStatusColor, cn } from '@/lib/utils';
+import type { Order } from '@/types';
 
 export default function OrdersPage() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const [orderId, setOrderId] = useState('');
+  const [offset, setOffset] = useState(0);
+  const pageSize = 10;
+  
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['orders', offset],
+    queryFn: () => orderService.getOrders(offset),
+    enabled: isAuthenticated,
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
   
   if (!isAuthenticated) {
     return (
@@ -26,49 +39,130 @@ export default function OrdersPage() {
     );
   }
 
-  const handleSearchOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (orderId.trim()) {
-      router.push(`/orders/${orderId}`);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loading size="lg" text="Loading orders..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <Package className="w-16 h-16 text-red-300 mb-4" />
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Failed to load orders</h2>
+        <p className="text-gray-600 mb-4">Please try again later</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </div>
+    );
+  }
+
+  const orders = data?.orders || [];
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h1>
       
-      <div className="bg-white rounded-lg shadow p-8">
-        <div className="max-w-md mx-auto">
+      {orders.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
           <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2 text-center">Find Your Order</h2>
-          <p className="text-gray-600 mb-6 text-center">
-            Enter your order ID to view order details and status.
-          </p>
-          
-          <form onSubmit={handleSearchOrder} className="space-y-4">
-            <Input
-              label="Order ID"
-              type="number"
-              placeholder="Enter your order ID (e.g., 1, 2, 3...)"
-              value={orderId}
-              onChange={(e) => setOrderId(e.target.value)}
-            />
-            <Button type="submit" className="w-full">
-              <Search className="w-4 h-4 mr-2" />
-              View Order
-            </Button>
-          </form>
-          
-          <div className="mt-6 pt-6 border-t text-center">
-            <p className="text-sm text-gray-500 mb-4">
-              Don&apos;t have an order yet?
-            </p>
-            <Link href="/products">
-              <Button variant="outline">Start Shopping</Button>
-            </Link>
-          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No orders yet</h2>
+          <p className="text-gray-600 mb-6">Start shopping to create your first order!</p>
+          <Link href="/products">
+            <Button>Browse Products</Button>
+          </Link>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Order ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created At
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {orders.map((order: Order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="font-medium text-gray-900">#{order.id}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-primary-600 font-semibold">
+                        {formatPrice(order.total_price)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={cn(
+                        'px-2 py-1 rounded-full text-xs font-medium',
+                        getStatusColor(order.status)
+                      )}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(order.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {order.status.toLowerCase() === 'pending' ? (
+                        <Button 
+                          variant="primary" 
+                          size="sm"
+                          onClick={() => router.push(`/orders/${order.id}`)}
+                        >
+                          Pay Now
+                        </Button>
+                      ) : (
+                        <Link href={`/orders/${order.id}`}>
+                          <Button variant="outline" size="sm">View</Button>
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Pagination */}
+          <div className="flex items-center justify-between mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setOffset(Math.max(0, offset - pageSize))}
+              disabled={offset === 0}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Previous
+            </Button>
+            <span className="text-sm text-gray-600">
+              Showing {offset + 1} - {offset + orders.length}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setOffset(offset + pageSize)}
+              disabled={orders.length < pageSize}
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
