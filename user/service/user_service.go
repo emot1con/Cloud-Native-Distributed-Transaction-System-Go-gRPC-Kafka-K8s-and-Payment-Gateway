@@ -28,7 +28,7 @@ func NewUserService(repo repository.UserRepository) *UserService {
 
 func (u *UserService) Register(payload *proto.RegisterPayload) error {
 	logrus.Info("get user")
-	if _, err := u.repo.GetUserByEmail(payload.Email); err == nil {
+	if user, err := u.repo.GetUserByEmail(payload.Email); err == nil && user != nil {
 		return fmt.Errorf("email already exists")
 	}
 

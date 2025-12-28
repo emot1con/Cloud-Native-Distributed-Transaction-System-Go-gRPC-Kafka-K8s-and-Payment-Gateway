@@ -36,14 +36,14 @@ func (u *OrderGRPCServer) CreateOrder(ctx context.Context, req *proto.CreateOrde
 	return order, nil
 }
 
-func (u *OrderGRPCServer) GetOrder(ctx context.Context, req *proto.GetOrderRequest) (*proto.OrderResponse, error) {
-	order, err := u.service.GetOrderByID(req)
+func (u *OrderGRPCServer) GetOrder(ctx context.Context, req *proto.GetOrderRequest) (*proto.OrdersResponse, error) {
+	orders, err := u.service.GetOrderByUserID(req)
 	if err != nil {
 		return nil, err
 	}
 
-	return &proto.OrderResponse{
-		Order: order,
+	return &proto.OrdersResponse{
+		Orders: orders,
 	}, nil
 }
 

@@ -31,6 +31,7 @@ type UserRepositoryImpl struct {
 func NewUserRepository() *UserRepositoryImpl {
 	addr := os.Getenv("USER_SERVICE_ADDR")
 	if addr == "" {
+		logrus.Info("USER_SERVICE_ADDR not set, using default address")
 		addr = "user-service:50001"
 	}
 

@@ -69,22 +69,32 @@ func (u *OrderHandler) CreateOrder(c *gin.Context) {
 }
 
 func (u *OrderHandler) GetOrder(c *gin.Context) {
-	logrus.Info("Fetching order by ID")
-	query := c.Query("order_id")
-	orderID, err := strconv.Atoi(query)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid order ID"})
+	userID, ok := c.Request.Context().Value(auth.UserKey).(int)
+	if !ok {
+		c.JSON(401, gin.H{"error": "User ID not found"})
 		return
 	}
 
+	query := c.Query("offset")
+	offset, err := strconv.Atoi(query)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid page"})
+		return
+	}
+
+	if offset < 0 {
+		offset = 0
+	}
+
 	logrus.Infof("calling repo")
-	order, err := u.orderRepo.GetOrder(&proto.GetOrderRequest{
-		OrderId: int32(orderID),
+	orders, err := u.orderRepo.GetOrder(&proto.GetOrderRequest{
+		UserId: int32(userID),
+		Offset: int32(offset),
 	})
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, order)
+	c.JSON(200, orders)
 }

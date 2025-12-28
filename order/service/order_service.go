@@ -131,8 +131,8 @@ func (u *OrderService) CreateOrder(payload *proto.CreateOrderRequest) (*proto.Or
 	}, nil
 }
 
-func (u *OrderService) GetOrderByID(payload *proto.GetOrderRequest) (*proto.Order, error) {
-	orderResponse, err := u.orderRepo.GetOrderByID(payload, u.DB)
+func (u *OrderService) GetOrderByUserID(payload *proto.GetOrderRequest) ([]*proto.Order, error) {
+	orderResponse, err := u.orderRepo.GetOrderByUserID(payload, u.DB)
 	if err != nil {
 		return nil, err
 	}

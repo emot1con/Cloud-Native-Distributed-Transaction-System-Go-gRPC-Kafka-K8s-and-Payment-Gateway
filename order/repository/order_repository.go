@@ -2,14 +2,13 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"order/proto"
 	"time"
 )
 
 type OrderRepository interface {
 	CreateOrder(payload *proto.CreateOrderRequest, price float64, tx *sql.Tx) (int, error)
-	GetOrderByID(payload *proto.GetOrderRequest, db *sql.DB) (*proto.Order, error)
+	GetOrderByUserID(payload *proto.GetOrderRequest, db *sql.DB) ([]*proto.Order, error)
 	UpdateOrderStatus(status string, orderID int, tx *sql.Tx) error
 }
 
@@ -29,22 +28,30 @@ func (u *OrderRepositoryImpl) CreateOrder(payload *proto.CreateOrderRequest, pri
 	return orderID, nil
 }
 
-func (u *OrderRepositoryImpl) GetOrderByID(payload *proto.GetOrderRequest, db *sql.DB) (*proto.Order, error) {
-	SQL := "SELECT id, user_id, status, total_price, created_at, updated_at FROM orders WHERE id = $1"
-	rows := db.QueryRow(SQL, payload.OrderId)
-
-	orderResponse := &proto.Order{}
-	if err := rows.Scan(
-		&orderResponse.Id,
-		&orderResponse.UserId,
-		&orderResponse.Status,
-		&orderResponse.TotalPrice,
-		&orderResponse.CreatedAt,
-		&orderResponse.UpdatedAt,
-	); err != nil {
-		return nil, errors.New("order not found")
+func (u *OrderRepositoryImpl) GetOrderByUserID(payload *proto.GetOrderRequest, db *sql.DB) ([]*proto.Order, error) {
+	SQL := "SELECT id, user_id, status, total_price, created_at, updated_at FROM orders WHERE user_id = $1 ORDER BY id ASC LIMIT 15 OFFSET $2"
+	rows, err := db.Query(SQL, payload.UserId, payload.Offset)
+	if err != nil {
+		return nil, err
 	}
-	return orderResponse, nil
+	defer rows.Close()
+
+	var orders []*proto.Order
+	for rows.Next() {
+		order := &proto.Order{}
+		if err := rows.Scan(
+			&order.Id,
+			&order.UserId,
+			&order.Status,
+			&order.TotalPrice,
+			&order.CreatedAt,
+			&order.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+	return orders, nil
 }
 
 func (u *OrderRepositoryImpl) UpdateOrderStatus(status string, orderID int, tx *sql.Tx) error {
