@@ -4,36 +4,87 @@ package payment;
 
 option go_package = "../proto";
 
-message OrderPayment {
+// Payment Response - represents a payment record
+message PaymentResponse {
   int32 id = 1;
-  int32 user_id = 2;
-  int32 order_id = 3;
-  string status = 4;  
-  double total_price = 5;
-  string created_at = 6;
-  string updated_at = 7;
-}
-
-message CreatePaymentRequest {
-  int32 user_id = 1;
   int32 order_id = 2;
-  string status = 3;  
-  double total_price = 4;
+  double amount = 3;
+  string currency = 4;
+  string payment_method = 5;
+  string payment_channel = 6;
+  string gateway_name = 7;
+  string gateway_transaction_id = 8;
+  string gateway_order_id = 9;
+  string gateway_token = 10;
+  string gateway_redirect_url = 11;
+  string va_number = 12;
+  string qr_code_url = 13;
+  string status = 14;
+  string created_at = 15;
+  string paid_at = 16;
+  string expired_at = 17;
 }
 
-message PaymentTransaction {
-  int32 payment_id = 1;
-  double money = 2;
+// Request to create payment when order is created (via Kafka)
+message CreatePaymentRequest {
+  int32 order_id = 1;
+  double amount = 2;
 }
 
+// Request to get payment by order ID
 message GetPaymentByOrderIdRequest {
   int32 order_id = 1;
 }
 
+// Request to initiate payment with Midtrans
+message InitiatePaymentRequest {
+  int32 order_id = 1;
+  string payment_method = 2;  // gopay, bank_transfer, credit_card, shopeepay, qris
+  string payment_channel = 3; // bca, bni, mandiri (optional, for bank_transfer)
+  
+  // Customer info for Midtrans
+  string customer_name = 4;
+  string customer_email = 5;
+  string customer_phone = 6;
+}
+
+// Response after initiating payment
+message InitiatePaymentResponse {
+  int32 payment_id = 1;
+  string gateway_token = 2;
+  string gateway_redirect_url = 3;
+  string va_number = 4;
+  string qr_code_url = 5;
+  string expired_at = 6;
+  string status = 7;
+}
+
+// Webhook request from Midtrans
+message WebhookRequest {
+  string order_id = 1;
+  string transaction_id = 2;
+  string transaction_status = 3;
+  string payment_type = 4;
+  string gross_amount = 5;
+  string signature_key = 6;
+  string fraud_status = 7;
+  string status_code = 8;
+}
+
+// Generic empty response
 message EmptyPayment {}
 
+// Payment Service Definition
 service PaymentService {
-    rpc PayOrder (CreatePaymentRequest) returns (OrderPayment);
-    rpc Transaction (PaymentTransaction) returns (EmptyPayment);
-    rpc GetPaymentByOrderId (GetPaymentByOrderIdRequest) returns (OrderPayment);
+    // Create payment record when order is created (called via Kafka consumer)
+    rpc CreatePayment(CreatePaymentRequest) returns (PaymentResponse);
+    
+    // Get payment by order ID
+    rpc GetPaymentByOrderId(GetPaymentByOrderIdRequest) returns (PaymentResponse);
+    
+    // Initiate payment with Midtrans (get snap token)
+    rpc InitiatePayment(InitiatePaymentRequest) returns (InitiatePaymentResponse);
+    
+    // Handle webhook from Midtrans
+    rpc HandleWebhook(WebhookRequest) returns (EmptyPayment);
 }

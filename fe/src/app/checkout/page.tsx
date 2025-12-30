@@ -40,7 +40,9 @@ export default function CheckoutPage() {
       const response = await orderService.createOrder(orderPayload);
       
       clearCart();
-      toast.success('Order placed successfully!');
+      toast.success('Order placed! Redirecting to payment...');
+      
+      // Redirect to order detail page where user can pay
       router.push(`/orders/${response.order.id}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to place order');
@@ -85,8 +87,9 @@ export default function CheckoutPage() {
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Information</h2>
         <p className="text-gray-600 text-sm">
-          After placing your order, you will receive a payment ID. 
-          Use this ID to complete the payment on the payment page.
+          After placing your order, you will be redirected to complete payment 
+          using our secure payment gateway (Midtrans). You can pay using various methods 
+          including Credit Card, Bank Transfer, GoPay, OVO, and more.
         </p>
       </div>
       

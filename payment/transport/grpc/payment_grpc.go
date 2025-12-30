@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"net"
+	"payment/client"
 	"payment/cmd/db"
 	"payment/proto"
 	"payment/repository"
@@ -24,33 +25,45 @@ func NewPaymentGRPCServer(service *service.PaymentService) *PaymentGRPCServer {
 	}
 }
 
-func (u *PaymentGRPCServer) PayOrder(ctx context.Context, req *proto.CreatePaymentRequest) (*proto.OrderPayment, error) {
-	payment, err := u.service.AddPayment(req)
+// CreatePayment creates a new payment record (called when order is created)
+func (u *PaymentGRPCServer) CreatePayment(ctx context.Context, req *proto.CreatePaymentRequest) (*proto.PaymentResponse, error) {
+	payment, err := u.service.CreatePayment(req)
 	if err != nil {
 		return nil, err
 	}
-
 	return payment, nil
 }
 
-func (u *PaymentGRPCServer) Transaction(ctx context.Context, req *proto.PaymentTransaction) (*proto.EmptyPayment, error) {
-	if err := u.service.Transaction(req); err != nil {
-		return nil, err
-	}
-
-	return &proto.EmptyPayment{}, nil
-}
-
-func (u *PaymentGRPCServer) GetPaymentByOrderId(ctx context.Context, req *proto.GetPaymentByOrderIdRequest) (*proto.OrderPayment, error) {
+// GetPaymentByOrderId retrieves payment by order ID
+func (u *PaymentGRPCServer) GetPaymentByOrderId(ctx context.Context, req *proto.GetPaymentByOrderIdRequest) (*proto.PaymentResponse, error) {
 	payment, err := u.service.GetPaymentByOrderId(int(req.OrderId))
 	if err != nil {
 		return nil, err
 	}
-
 	return payment, nil
 }
 
+// InitiatePayment creates a Midtrans Snap transaction
+func (u *PaymentGRPCServer) InitiatePayment(ctx context.Context, req *proto.InitiatePaymentRequest) (*proto.InitiatePaymentResponse, error) {
+	response, err := u.service.InitiatePayment(req)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// HandleWebhook processes webhook notifications from Midtrans
+func (u *PaymentGRPCServer) HandleWebhook(ctx context.Context, req *proto.WebhookRequest) (*proto.EmptyPayment, error) {
+	if err := u.service.HandleWebhook(req); err != nil {
+		return nil, err
+	}
+	return &proto.EmptyPayment{}, nil
+}
+
 func GRPCListen(addr []string, topic []string, groupID string) {
+	// Initialize Midtrans client
+	client.InitMidtransClient()
+
 	DB, err := db.Connect()
 	if err != nil {
 		logrus.Fatalf("failed to connect to database: %v", err)

@@ -95,12 +95,40 @@ export interface OrdersResponse {
 // ============ Payment ============
 export interface Payment {
   id: number;
-  user_id: number;
   order_id: number;
-  status: 'pending' | 'paid';
-  total_price: number;
+  amount: number;
+  currency: string;
+  status: string;
+  payment_method: string;
+  gateway_order_id: string;
+  gateway_token: string;
+  gateway_redirect_url: string;
+  gateway_transaction_id: string;
+  gateway_status: string;
+  va_number: string;
+  qr_code_url: string;
   created_at: string;
-  updated_at: string;
+  paid_at: string;
+  expired_at: string;
+}
+
+export interface InitiatePaymentRequest {
+  order_id: number;
+  payment_method?: string;
+  payment_channel?: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
+}
+
+export interface InitiatePaymentResponse {
+  payment_id: number;
+  token: string;
+  redirect_url: string;
+  va_number: string;
+  qr_code_url: string;
+  expired_at: string;
+  status: string;
 }
 
 export interface PaymentTransaction {

@@ -37,7 +37,15 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const response = await authService.login(data);
-      login(response);
+      // Create user object from login data (email from form)
+      const user = {
+        id: 0, // Will be populated from profile if needed
+        full_name: data.email.split('@')[0], // Temporary: use email prefix as name
+        email: data.email,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      login(response, user);
       toast.success('Login successful!');
       router.push('/products');
     } catch (error) {

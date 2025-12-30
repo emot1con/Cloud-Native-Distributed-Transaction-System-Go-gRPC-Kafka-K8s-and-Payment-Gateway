@@ -91,6 +91,7 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         role: state.role,
         tokenExpiry: state.tokenExpiry,
+        user: state.user, // Persist user info
       }),
     }
   )

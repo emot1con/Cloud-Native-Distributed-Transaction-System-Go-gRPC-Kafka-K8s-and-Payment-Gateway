@@ -89,17 +89,18 @@ func (h *ConsumerHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim s
 			continue
 		}
 		logrus.Infof("Received message, UserID: %d with OrderId: %d \n", order.UserId, order.Id)
-		response, err := h.service.AddPayment(&proto.CreatePaymentRequest{
-			OrderId:    order.Id,
-			UserId:     order.UserId,
-			TotalPrice: order.TotalPrice,
+
+		// Create payment record with new schema (amount instead of total_price)
+		response, err := h.service.CreatePayment(&proto.CreatePaymentRequest{
+			OrderId: order.Id,
+			Amount:  order.TotalPrice,
 		})
 		if err != nil {
 			logrus.Errorf("Error creating payment: %v", err)
 			continue
 		}
 
-		logrus.Infof("Payment created with ID: %d", response.Id)
+		logrus.Infof("Payment created with ID: %d for order: %d", response.Id, order.Id)
 
 		sess.MarkMessage(msg, "")
 	}

@@ -12,9 +12,9 @@ import (
 )
 
 type PaymentRepository interface {
-	PayOrder(*proto.CreatePaymentRequest) (*proto.OrderPayment, error)
-	Transaction(*proto.PaymentTransaction) (*proto.EmptyPayment, error)
-	GetPaymentByOrderId(orderID int32) (*proto.OrderPayment, error)
+	GetPaymentByOrderId(orderID int32) (*proto.PaymentResponse, error)
+	InitiatePayment(req *proto.InitiatePaymentRequest) (*proto.InitiatePaymentResponse, error)
+	HandleWebhook(req *proto.WebhookRequest) error
 }
 
 type PaymentRepositoryImpl struct {
@@ -38,23 +38,24 @@ func NewPaymentRepository() *PaymentRepositoryImpl {
 	return &PaymentRepositoryImpl{client: client}
 }
 
-func (u *PaymentRepositoryImpl) PayOrder(payload *proto.CreatePaymentRequest) (*proto.OrderPayment, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	return u.client.PayOrder(ctx, payload)
-}
-
-func (u *PaymentRepositoryImpl) Transaction(payload *proto.PaymentTransaction) (*proto.EmptyPayment, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	return u.client.Transaction(ctx, payload)
-}
-
-func (u *PaymentRepositoryImpl) GetPaymentByOrderId(orderID int32) (*proto.OrderPayment, error) {
+func (u *PaymentRepositoryImpl) GetPaymentByOrderId(orderID int32) (*proto.PaymentResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	return u.client.GetPaymentByOrderId(ctx, &proto.GetPaymentByOrderIdRequest{OrderId: orderID})
+}
+
+func (u *PaymentRepositoryImpl) InitiatePayment(req *proto.InitiatePaymentRequest) (*proto.InitiatePaymentResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	return u.client.InitiatePayment(ctx, req)
+}
+
+func (u *PaymentRepositoryImpl) HandleWebhook(req *proto.WebhookRequest) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	_, err := u.client.HandleWebhook(ctx, req)
+	return err
 }

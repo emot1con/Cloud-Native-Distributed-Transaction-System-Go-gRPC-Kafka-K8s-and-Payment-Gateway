@@ -19,18 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PaymentService_PayOrder_FullMethodName            = "/payment.PaymentService/PayOrder"
-	PaymentService_Transaction_FullMethodName         = "/payment.PaymentService/Transaction"
+	PaymentService_CreatePayment_FullMethodName       = "/payment.PaymentService/CreatePayment"
 	PaymentService_GetPaymentByOrderId_FullMethodName = "/payment.PaymentService/GetPaymentByOrderId"
+	PaymentService_InitiatePayment_FullMethodName     = "/payment.PaymentService/InitiatePayment"
+	PaymentService_HandleWebhook_FullMethodName       = "/payment.PaymentService/HandleWebhook"
 )
 
 // PaymentServiceClient is the client API for PaymentService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Payment Service Definition
 type PaymentServiceClient interface {
-	PayOrder(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*OrderPayment, error)
-	Transaction(ctx context.Context, in *PaymentTransaction, opts ...grpc.CallOption) (*EmptyPayment, error)
-	GetPaymentByOrderId(ctx context.Context, in *GetPaymentByOrderIdRequest, opts ...grpc.CallOption) (*OrderPayment, error)
+	// Create payment record when order is created (called via Kafka consumer)
+	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*PaymentResponse, error)
+	// Get payment by order ID
+	GetPaymentByOrderId(ctx context.Context, in *GetPaymentByOrderIdRequest, opts ...grpc.CallOption) (*PaymentResponse, error)
+	// Initiate payment with Midtrans (get snap token)
+	InitiatePayment(ctx context.Context, in *InitiatePaymentRequest, opts ...grpc.CallOption) (*InitiatePaymentResponse, error)
+	// Handle webhook from Midtrans
+	HandleWebhook(ctx context.Context, in *WebhookRequest, opts ...grpc.CallOption) (*EmptyPayment, error)
 }
 
 type paymentServiceClient struct {
@@ -41,30 +49,40 @@ func NewPaymentServiceClient(cc grpc.ClientConnInterface) PaymentServiceClient {
 	return &paymentServiceClient{cc}
 }
 
-func (c *paymentServiceClient) PayOrder(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*OrderPayment, error) {
+func (c *paymentServiceClient) CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*PaymentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderPayment)
-	err := c.cc.Invoke(ctx, PaymentService_PayOrder_FullMethodName, in, out, cOpts...)
+	out := new(PaymentResponse)
+	err := c.cc.Invoke(ctx, PaymentService_CreatePayment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *paymentServiceClient) Transaction(ctx context.Context, in *PaymentTransaction, opts ...grpc.CallOption) (*EmptyPayment, error) {
+func (c *paymentServiceClient) GetPaymentByOrderId(ctx context.Context, in *GetPaymentByOrderIdRequest, opts ...grpc.CallOption) (*PaymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PaymentResponse)
+	err := c.cc.Invoke(ctx, PaymentService_GetPaymentByOrderId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *paymentServiceClient) InitiatePayment(ctx context.Context, in *InitiatePaymentRequest, opts ...grpc.CallOption) (*InitiatePaymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InitiatePaymentResponse)
+	err := c.cc.Invoke(ctx, PaymentService_InitiatePayment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *paymentServiceClient) HandleWebhook(ctx context.Context, in *WebhookRequest, opts ...grpc.CallOption) (*EmptyPayment, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmptyPayment)
-	err := c.cc.Invoke(ctx, PaymentService_Transaction_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *paymentServiceClient) GetPaymentByOrderId(ctx context.Context, in *GetPaymentByOrderIdRequest, opts ...grpc.CallOption) (*OrderPayment, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderPayment)
-	err := c.cc.Invoke(ctx, PaymentService_GetPaymentByOrderId_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PaymentService_HandleWebhook_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -74,10 +92,17 @@ func (c *paymentServiceClient) GetPaymentByOrderId(ctx context.Context, in *GetP
 // PaymentServiceServer is the server API for PaymentService service.
 // All implementations must embed UnimplementedPaymentServiceServer
 // for forward compatibility.
+//
+// Payment Service Definition
 type PaymentServiceServer interface {
-	PayOrder(context.Context, *CreatePaymentRequest) (*OrderPayment, error)
-	Transaction(context.Context, *PaymentTransaction) (*EmptyPayment, error)
-	GetPaymentByOrderId(context.Context, *GetPaymentByOrderIdRequest) (*OrderPayment, error)
+	// Create payment record when order is created (called via Kafka consumer)
+	CreatePayment(context.Context, *CreatePaymentRequest) (*PaymentResponse, error)
+	// Get payment by order ID
+	GetPaymentByOrderId(context.Context, *GetPaymentByOrderIdRequest) (*PaymentResponse, error)
+	// Initiate payment with Midtrans (get snap token)
+	InitiatePayment(context.Context, *InitiatePaymentRequest) (*InitiatePaymentResponse, error)
+	// Handle webhook from Midtrans
+	HandleWebhook(context.Context, *WebhookRequest) (*EmptyPayment, error)
 	mustEmbedUnimplementedPaymentServiceServer()
 }
 
@@ -88,14 +113,17 @@ type PaymentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedPaymentServiceServer struct{}
 
-func (UnimplementedPaymentServiceServer) PayOrder(context.Context, *CreatePaymentRequest) (*OrderPayment, error) {
-	return nil, status.Error(codes.Unimplemented, "method PayOrder not implemented")
+func (UnimplementedPaymentServiceServer) CreatePayment(context.Context, *CreatePaymentRequest) (*PaymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePayment not implemented")
 }
-func (UnimplementedPaymentServiceServer) Transaction(context.Context, *PaymentTransaction) (*EmptyPayment, error) {
-	return nil, status.Error(codes.Unimplemented, "method Transaction not implemented")
-}
-func (UnimplementedPaymentServiceServer) GetPaymentByOrderId(context.Context, *GetPaymentByOrderIdRequest) (*OrderPayment, error) {
+func (UnimplementedPaymentServiceServer) GetPaymentByOrderId(context.Context, *GetPaymentByOrderIdRequest) (*PaymentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPaymentByOrderId not implemented")
+}
+func (UnimplementedPaymentServiceServer) InitiatePayment(context.Context, *InitiatePaymentRequest) (*InitiatePaymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InitiatePayment not implemented")
+}
+func (UnimplementedPaymentServiceServer) HandleWebhook(context.Context, *WebhookRequest) (*EmptyPayment, error) {
+	return nil, status.Error(codes.Unimplemented, "method HandleWebhook not implemented")
 }
 func (UnimplementedPaymentServiceServer) mustEmbedUnimplementedPaymentServiceServer() {}
 func (UnimplementedPaymentServiceServer) testEmbeddedByValue()                        {}
@@ -118,38 +146,20 @@ func RegisterPaymentServiceServer(s grpc.ServiceRegistrar, srv PaymentServiceSer
 	s.RegisterService(&PaymentService_ServiceDesc, srv)
 }
 
-func _PaymentService_PayOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PaymentService_CreatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreatePaymentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PaymentServiceServer).PayOrder(ctx, in)
+		return srv.(PaymentServiceServer).CreatePayment(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PaymentService_PayOrder_FullMethodName,
+		FullMethod: PaymentService_CreatePayment_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PaymentServiceServer).PayOrder(ctx, req.(*CreatePaymentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PaymentService_Transaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaymentTransaction)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PaymentServiceServer).Transaction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: PaymentService_Transaction_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PaymentServiceServer).Transaction(ctx, req.(*PaymentTransaction))
+		return srv.(PaymentServiceServer).CreatePayment(ctx, req.(*CreatePaymentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -172,6 +182,42 @@ func _PaymentService_GetPaymentByOrderId_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentService_InitiatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitiatePaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentServiceServer).InitiatePayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentService_InitiatePayment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentServiceServer).InitiatePayment(ctx, req.(*InitiatePaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PaymentService_HandleWebhook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WebhookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentServiceServer).HandleWebhook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentService_HandleWebhook_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentServiceServer).HandleWebhook(ctx, req.(*WebhookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PaymentService_ServiceDesc is the grpc.ServiceDesc for PaymentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -180,16 +226,20 @@ var PaymentService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PaymentServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PayOrder",
-			Handler:    _PaymentService_PayOrder_Handler,
-		},
-		{
-			MethodName: "Transaction",
-			Handler:    _PaymentService_Transaction_Handler,
+			MethodName: "CreatePayment",
+			Handler:    _PaymentService_CreatePayment_Handler,
 		},
 		{
 			MethodName: "GetPaymentByOrderId",
 			Handler:    _PaymentService_GetPaymentByOrderId_Handler,
+		},
+		{
+			MethodName: "InitiatePayment",
+			Handler:    _PaymentService_InitiatePayment_Handler,
+		},
+		{
+			MethodName: "HandleWebhook",
+			Handler:    _PaymentService_HandleWebhook_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

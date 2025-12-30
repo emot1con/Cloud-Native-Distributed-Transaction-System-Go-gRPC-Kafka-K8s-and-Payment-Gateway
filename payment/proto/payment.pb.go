@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v3.19.6
-// source: payment.proto
+// source: proto/payment.proto
 
 package proto
 
@@ -21,34 +21,45 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type OrderPayment struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        int32                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	OrderId       int32                  `protobuf:"varint,3,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	TotalPrice    float64                `protobuf:"fixed64,5,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+// Payment Response - represents a payment record
+type PaymentResponse struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId              int32                  `protobuf:"varint,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Amount               float64                `protobuf:"fixed64,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	Currency             string                 `protobuf:"bytes,4,opt,name=currency,proto3" json:"currency,omitempty"`
+	PaymentMethod        string                 `protobuf:"bytes,5,opt,name=payment_method,json=paymentMethod,proto3" json:"payment_method,omitempty"`
+	PaymentChannel       string                 `protobuf:"bytes,6,opt,name=payment_channel,json=paymentChannel,proto3" json:"payment_channel,omitempty"`
+	GatewayName          string                 `protobuf:"bytes,7,opt,name=gateway_name,json=gatewayName,proto3" json:"gateway_name,omitempty"`
+	GatewayTransactionId string                 `protobuf:"bytes,8,opt,name=gateway_transaction_id,json=gatewayTransactionId,proto3" json:"gateway_transaction_id,omitempty"`
+	GatewayOrderId       string                 `protobuf:"bytes,9,opt,name=gateway_order_id,json=gatewayOrderId,proto3" json:"gateway_order_id,omitempty"`
+	GatewayToken         string                 `protobuf:"bytes,10,opt,name=gateway_token,json=gatewayToken,proto3" json:"gateway_token,omitempty"`
+	GatewayRedirectUrl   string                 `protobuf:"bytes,11,opt,name=gateway_redirect_url,json=gatewayRedirectUrl,proto3" json:"gateway_redirect_url,omitempty"`
+	VaNumber             string                 `protobuf:"bytes,12,opt,name=va_number,json=vaNumber,proto3" json:"va_number,omitempty"`
+	QrCodeUrl            string                 `protobuf:"bytes,13,opt,name=qr_code_url,json=qrCodeUrl,proto3" json:"qr_code_url,omitempty"`
+	Status               string                 `protobuf:"bytes,14,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt            string                 `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	PaidAt               string                 `protobuf:"bytes,16,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
+	ExpiredAt            string                 `protobuf:"bytes,17,opt,name=expired_at,json=expiredAt,proto3" json:"expired_at,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
-func (x *OrderPayment) Reset() {
-	*x = OrderPayment{}
-	mi := &file_payment_proto_msgTypes[0]
+func (x *PaymentResponse) Reset() {
+	*x = PaymentResponse{}
+	mi := &file_proto_payment_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderPayment) String() string {
+func (x *PaymentResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderPayment) ProtoMessage() {}
+func (*PaymentResponse) ProtoMessage() {}
 
-func (x *OrderPayment) ProtoReflect() protoreflect.Message {
-	mi := &file_payment_proto_msgTypes[0]
+func (x *PaymentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_payment_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,73 +70,142 @@ func (x *OrderPayment) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderPayment.ProtoReflect.Descriptor instead.
-func (*OrderPayment) Descriptor() ([]byte, []int) {
-	return file_payment_proto_rawDescGZIP(), []int{0}
+// Deprecated: Use PaymentResponse.ProtoReflect.Descriptor instead.
+func (*PaymentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_payment_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *OrderPayment) GetId() int32 {
+func (x *PaymentResponse) GetId() int32 {
 	if x != nil {
 		return x.Id
 	}
 	return 0
 }
 
-func (x *OrderPayment) GetUserId() int32 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
-}
-
-func (x *OrderPayment) GetOrderId() int32 {
+func (x *PaymentResponse) GetOrderId() int32 {
 	if x != nil {
 		return x.OrderId
 	}
 	return 0
 }
 
-func (x *OrderPayment) GetStatus() string {
+func (x *PaymentResponse) GetAmount() float64 {
+	if x != nil {
+		return x.Amount
+	}
+	return 0
+}
+
+func (x *PaymentResponse) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetPaymentMethod() string {
+	if x != nil {
+		return x.PaymentMethod
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetPaymentChannel() string {
+	if x != nil {
+		return x.PaymentChannel
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetGatewayName() string {
+	if x != nil {
+		return x.GatewayName
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetGatewayTransactionId() string {
+	if x != nil {
+		return x.GatewayTransactionId
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetGatewayOrderId() string {
+	if x != nil {
+		return x.GatewayOrderId
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetGatewayToken() string {
+	if x != nil {
+		return x.GatewayToken
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetGatewayRedirectUrl() string {
+	if x != nil {
+		return x.GatewayRedirectUrl
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetVaNumber() string {
+	if x != nil {
+		return x.VaNumber
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetQrCodeUrl() string {
+	if x != nil {
+		return x.QrCodeUrl
+	}
+	return ""
+}
+
+func (x *PaymentResponse) GetStatus() string {
 	if x != nil {
 		return x.Status
 	}
 	return ""
 }
 
-func (x *OrderPayment) GetTotalPrice() float64 {
-	if x != nil {
-		return x.TotalPrice
-	}
-	return 0
-}
-
-func (x *OrderPayment) GetCreatedAt() string {
+func (x *PaymentResponse) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return ""
 }
 
-func (x *OrderPayment) GetUpdatedAt() string {
+func (x *PaymentResponse) GetPaidAt() string {
 	if x != nil {
-		return x.UpdatedAt
+		return x.PaidAt
 	}
 	return ""
 }
 
+func (x *PaymentResponse) GetExpiredAt() string {
+	if x != nil {
+		return x.ExpiredAt
+	}
+	return ""
+}
+
+// Request to create payment when order is created (via Kafka)
 type CreatePaymentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        int32                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	OrderId       int32                  `protobuf:"varint,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	TotalPrice    float64                `protobuf:"fixed64,4,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
+	OrderId       int32                  `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Amount        float64                `protobuf:"fixed64,2,opt,name=amount,proto3" json:"amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreatePaymentRequest) Reset() {
 	*x = CreatePaymentRequest{}
-	mi := &file_payment_proto_msgTypes[1]
+	mi := &file_proto_payment_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -137,7 +217,7 @@ func (x *CreatePaymentRequest) String() string {
 func (*CreatePaymentRequest) ProtoMessage() {}
 
 func (x *CreatePaymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_payment_proto_msgTypes[1]
+	mi := &file_proto_payment_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -150,14 +230,7 @@ func (x *CreatePaymentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePaymentRequest.ProtoReflect.Descriptor instead.
 func (*CreatePaymentRequest) Descriptor() ([]byte, []int) {
-	return file_payment_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *CreatePaymentRequest) GetUserId() int32 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
+	return file_proto_payment_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreatePaymentRequest) GetOrderId() int32 {
@@ -167,72 +240,14 @@ func (x *CreatePaymentRequest) GetOrderId() int32 {
 	return 0
 }
 
-func (x *CreatePaymentRequest) GetStatus() string {
+func (x *CreatePaymentRequest) GetAmount() float64 {
 	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *CreatePaymentRequest) GetTotalPrice() float64 {
-	if x != nil {
-		return x.TotalPrice
+		return x.Amount
 	}
 	return 0
 }
 
-type PaymentTransaction struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	PaymentId     int32                  `protobuf:"varint,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
-	Money         float64                `protobuf:"fixed64,2,opt,name=money,proto3" json:"money,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PaymentTransaction) Reset() {
-	*x = PaymentTransaction{}
-	mi := &file_payment_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PaymentTransaction) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PaymentTransaction) ProtoMessage() {}
-
-func (x *PaymentTransaction) ProtoReflect() protoreflect.Message {
-	mi := &file_payment_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PaymentTransaction.ProtoReflect.Descriptor instead.
-func (*PaymentTransaction) Descriptor() ([]byte, []int) {
-	return file_payment_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *PaymentTransaction) GetPaymentId() int32 {
-	if x != nil {
-		return x.PaymentId
-	}
-	return 0
-}
-
-func (x *PaymentTransaction) GetMoney() float64 {
-	if x != nil {
-		return x.Money
-	}
-	return 0
-}
-
+// Request to get payment by order ID
 type GetPaymentByOrderIdRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderId       int32                  `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -242,7 +257,7 @@ type GetPaymentByOrderIdRequest struct {
 
 func (x *GetPaymentByOrderIdRequest) Reset() {
 	*x = GetPaymentByOrderIdRequest{}
-	mi := &file_payment_proto_msgTypes[3]
+	mi := &file_proto_payment_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -254,7 +269,7 @@ func (x *GetPaymentByOrderIdRequest) String() string {
 func (*GetPaymentByOrderIdRequest) ProtoMessage() {}
 
 func (x *GetPaymentByOrderIdRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_payment_proto_msgTypes[3]
+	mi := &file_proto_payment_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -267,7 +282,7 @@ func (x *GetPaymentByOrderIdRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPaymentByOrderIdRequest.ProtoReflect.Descriptor instead.
 func (*GetPaymentByOrderIdRequest) Descriptor() ([]byte, []int) {
-	return file_payment_proto_rawDescGZIP(), []int{3}
+	return file_proto_payment_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetPaymentByOrderIdRequest) GetOrderId() int32 {
@@ -277,6 +292,287 @@ func (x *GetPaymentByOrderIdRequest) GetOrderId() int32 {
 	return 0
 }
 
+// Request to initiate payment with Midtrans
+type InitiatePaymentRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	OrderId        int32                  `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	PaymentMethod  string                 `protobuf:"bytes,2,opt,name=payment_method,json=paymentMethod,proto3" json:"payment_method,omitempty"`    // gopay, bank_transfer, credit_card, shopeepay, qris
+	PaymentChannel string                 `protobuf:"bytes,3,opt,name=payment_channel,json=paymentChannel,proto3" json:"payment_channel,omitempty"` // bca, bni, mandiri (optional, for bank_transfer)
+	// Customer info for Midtrans
+	CustomerName  string `protobuf:"bytes,4,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	CustomerEmail string `protobuf:"bytes,5,opt,name=customer_email,json=customerEmail,proto3" json:"customer_email,omitempty"`
+	CustomerPhone string `protobuf:"bytes,6,opt,name=customer_phone,json=customerPhone,proto3" json:"customer_phone,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InitiatePaymentRequest) Reset() {
+	*x = InitiatePaymentRequest{}
+	mi := &file_proto_payment_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InitiatePaymentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InitiatePaymentRequest) ProtoMessage() {}
+
+func (x *InitiatePaymentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_payment_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InitiatePaymentRequest.ProtoReflect.Descriptor instead.
+func (*InitiatePaymentRequest) Descriptor() ([]byte, []int) {
+	return file_proto_payment_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *InitiatePaymentRequest) GetOrderId() int32 {
+	if x != nil {
+		return x.OrderId
+	}
+	return 0
+}
+
+func (x *InitiatePaymentRequest) GetPaymentMethod() string {
+	if x != nil {
+		return x.PaymentMethod
+	}
+	return ""
+}
+
+func (x *InitiatePaymentRequest) GetPaymentChannel() string {
+	if x != nil {
+		return x.PaymentChannel
+	}
+	return ""
+}
+
+func (x *InitiatePaymentRequest) GetCustomerName() string {
+	if x != nil {
+		return x.CustomerName
+	}
+	return ""
+}
+
+func (x *InitiatePaymentRequest) GetCustomerEmail() string {
+	if x != nil {
+		return x.CustomerEmail
+	}
+	return ""
+}
+
+func (x *InitiatePaymentRequest) GetCustomerPhone() string {
+	if x != nil {
+		return x.CustomerPhone
+	}
+	return ""
+}
+
+// Response after initiating payment
+type InitiatePaymentResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	PaymentId          int32                  `protobuf:"varint,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
+	GatewayToken       string                 `protobuf:"bytes,2,opt,name=gateway_token,json=gatewayToken,proto3" json:"gateway_token,omitempty"`
+	GatewayRedirectUrl string                 `protobuf:"bytes,3,opt,name=gateway_redirect_url,json=gatewayRedirectUrl,proto3" json:"gateway_redirect_url,omitempty"`
+	VaNumber           string                 `protobuf:"bytes,4,opt,name=va_number,json=vaNumber,proto3" json:"va_number,omitempty"`
+	QrCodeUrl          string                 `protobuf:"bytes,5,opt,name=qr_code_url,json=qrCodeUrl,proto3" json:"qr_code_url,omitempty"`
+	ExpiredAt          string                 `protobuf:"bytes,6,opt,name=expired_at,json=expiredAt,proto3" json:"expired_at,omitempty"`
+	Status             string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *InitiatePaymentResponse) Reset() {
+	*x = InitiatePaymentResponse{}
+	mi := &file_proto_payment_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InitiatePaymentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InitiatePaymentResponse) ProtoMessage() {}
+
+func (x *InitiatePaymentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_payment_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InitiatePaymentResponse.ProtoReflect.Descriptor instead.
+func (*InitiatePaymentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_payment_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *InitiatePaymentResponse) GetPaymentId() int32 {
+	if x != nil {
+		return x.PaymentId
+	}
+	return 0
+}
+
+func (x *InitiatePaymentResponse) GetGatewayToken() string {
+	if x != nil {
+		return x.GatewayToken
+	}
+	return ""
+}
+
+func (x *InitiatePaymentResponse) GetGatewayRedirectUrl() string {
+	if x != nil {
+		return x.GatewayRedirectUrl
+	}
+	return ""
+}
+
+func (x *InitiatePaymentResponse) GetVaNumber() string {
+	if x != nil {
+		return x.VaNumber
+	}
+	return ""
+}
+
+func (x *InitiatePaymentResponse) GetQrCodeUrl() string {
+	if x != nil {
+		return x.QrCodeUrl
+	}
+	return ""
+}
+
+func (x *InitiatePaymentResponse) GetExpiredAt() string {
+	if x != nil {
+		return x.ExpiredAt
+	}
+	return ""
+}
+
+func (x *InitiatePaymentResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+// Webhook request from Midtrans
+type WebhookRequest struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	OrderId           string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	TransactionId     string                 `protobuf:"bytes,2,opt,name=transaction_id,json=transactionId,proto3" json:"transaction_id,omitempty"`
+	TransactionStatus string                 `protobuf:"bytes,3,opt,name=transaction_status,json=transactionStatus,proto3" json:"transaction_status,omitempty"`
+	PaymentType       string                 `protobuf:"bytes,4,opt,name=payment_type,json=paymentType,proto3" json:"payment_type,omitempty"`
+	GrossAmount       string                 `protobuf:"bytes,5,opt,name=gross_amount,json=grossAmount,proto3" json:"gross_amount,omitempty"`
+	SignatureKey      string                 `protobuf:"bytes,6,opt,name=signature_key,json=signatureKey,proto3" json:"signature_key,omitempty"`
+	FraudStatus       string                 `protobuf:"bytes,7,opt,name=fraud_status,json=fraudStatus,proto3" json:"fraud_status,omitempty"`
+	StatusCode        string                 `protobuf:"bytes,8,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *WebhookRequest) Reset() {
+	*x = WebhookRequest{}
+	mi := &file_proto_payment_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WebhookRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WebhookRequest) ProtoMessage() {}
+
+func (x *WebhookRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_payment_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WebhookRequest.ProtoReflect.Descriptor instead.
+func (*WebhookRequest) Descriptor() ([]byte, []int) {
+	return file_proto_payment_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WebhookRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *WebhookRequest) GetTransactionId() string {
+	if x != nil {
+		return x.TransactionId
+	}
+	return ""
+}
+
+func (x *WebhookRequest) GetTransactionStatus() string {
+	if x != nil {
+		return x.TransactionStatus
+	}
+	return ""
+}
+
+func (x *WebhookRequest) GetPaymentType() string {
+	if x != nil {
+		return x.PaymentType
+	}
+	return ""
+}
+
+func (x *WebhookRequest) GetGrossAmount() string {
+	if x != nil {
+		return x.GrossAmount
+	}
+	return ""
+}
+
+func (x *WebhookRequest) GetSignatureKey() string {
+	if x != nil {
+		return x.SignatureKey
+	}
+	return ""
+}
+
+func (x *WebhookRequest) GetFraudStatus() string {
+	if x != nil {
+		return x.FraudStatus
+	}
+	return ""
+}
+
+func (x *WebhookRequest) GetStatusCode() string {
+	if x != nil {
+		return x.StatusCode
+	}
+	return ""
+}
+
+// Generic empty response
 type EmptyPayment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -285,7 +581,7 @@ type EmptyPayment struct {
 
 func (x *EmptyPayment) Reset() {
 	*x = EmptyPayment{}
-	mi := &file_payment_proto_msgTypes[4]
+	mi := &file_proto_payment_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +593,7 @@ func (x *EmptyPayment) String() string {
 func (*EmptyPayment) ProtoMessage() {}
 
 func (x *EmptyPayment) ProtoReflect() protoreflect.Message {
-	mi := &file_payment_proto_msgTypes[4]
+	mi := &file_proto_payment_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,98 +606,133 @@ func (x *EmptyPayment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmptyPayment.ProtoReflect.Descriptor instead.
 func (*EmptyPayment) Descriptor() ([]byte, []int) {
-	return file_payment_proto_rawDescGZIP(), []int{4}
+	return file_proto_payment_proto_rawDescGZIP(), []int{6}
 }
 
-var File_payment_proto protoreflect.FileDescriptor
+var File_proto_payment_proto protoreflect.FileDescriptor
 
-const file_payment_proto_rawDesc = "" +
+const file_proto_payment_proto_rawDesc = "" +
 	"\n" +
-	"\rpayment.proto\x12\apayment\"\xc9\x01\n" +
-	"\fOrderPayment\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x19\n" +
-	"\border_id\x18\x03 \x01(\x05R\aorderId\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1f\n" +
-	"\vtotal_price\x18\x05 \x01(\x01R\n" +
-	"totalPrice\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\"\x83\x01\n" +
-	"\x14CreatePaymentRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x19\n" +
+	"\x13proto/payment.proto\x12\apayment\"\xc6\x04\n" +
+	"\x0fPaymentResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\x05R\aorderId\x12\x16\n" +
-	"\x06status\x18\x03 \x01(\tR\x06status\x12\x1f\n" +
-	"\vtotal_price\x18\x04 \x01(\x01R\n" +
-	"totalPrice\"I\n" +
-	"\x12PaymentTransaction\x12\x1d\n" +
+	"\x06amount\x18\x03 \x01(\x01R\x06amount\x12\x1a\n" +
+	"\bcurrency\x18\x04 \x01(\tR\bcurrency\x12%\n" +
+	"\x0epayment_method\x18\x05 \x01(\tR\rpaymentMethod\x12'\n" +
+	"\x0fpayment_channel\x18\x06 \x01(\tR\x0epaymentChannel\x12!\n" +
+	"\fgateway_name\x18\a \x01(\tR\vgatewayName\x124\n" +
+	"\x16gateway_transaction_id\x18\b \x01(\tR\x14gatewayTransactionId\x12(\n" +
+	"\x10gateway_order_id\x18\t \x01(\tR\x0egatewayOrderId\x12#\n" +
+	"\rgateway_token\x18\n" +
+	" \x01(\tR\fgatewayToken\x120\n" +
+	"\x14gateway_redirect_url\x18\v \x01(\tR\x12gatewayRedirectUrl\x12\x1b\n" +
+	"\tva_number\x18\f \x01(\tR\bvaNumber\x12\x1e\n" +
+	"\vqr_code_url\x18\r \x01(\tR\tqrCodeUrl\x12\x16\n" +
+	"\x06status\x18\x0e \x01(\tR\x06status\x12\x1d\n" +
 	"\n" +
-	"payment_id\x18\x01 \x01(\x05R\tpaymentId\x12\x14\n" +
-	"\x05money\x18\x02 \x01(\x01R\x05money\"7\n" +
+	"created_at\x18\x0f \x01(\tR\tcreatedAt\x12\x17\n" +
+	"\apaid_at\x18\x10 \x01(\tR\x06paidAt\x12\x1d\n" +
+	"\n" +
+	"expired_at\x18\x11 \x01(\tR\texpiredAt\"I\n" +
+	"\x14CreatePaymentRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\x05R\aorderId\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\x01R\x06amount\"7\n" +
 	"\x1aGetPaymentByOrderIdRequest\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\x05R\aorderId\"\x0e\n" +
-	"\fEmptyPayment2\xe8\x01\n" +
-	"\x0ePaymentService\x12@\n" +
-	"\bPayOrder\x12\x1d.payment.CreatePaymentRequest\x1a\x15.payment.OrderPayment\x12A\n" +
-	"\vTransaction\x12\x1b.payment.PaymentTransaction\x1a\x15.payment.EmptyPayment\x12Q\n" +
-	"\x13GetPaymentByOrderId\x12#.payment.GetPaymentByOrderIdRequest\x1a\x15.payment.OrderPaymentB\n" +
+	"\border_id\x18\x01 \x01(\x05R\aorderId\"\xf6\x01\n" +
+	"\x16InitiatePaymentRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\x05R\aorderId\x12%\n" +
+	"\x0epayment_method\x18\x02 \x01(\tR\rpaymentMethod\x12'\n" +
+	"\x0fpayment_channel\x18\x03 \x01(\tR\x0epaymentChannel\x12#\n" +
+	"\rcustomer_name\x18\x04 \x01(\tR\fcustomerName\x12%\n" +
+	"\x0ecustomer_email\x18\x05 \x01(\tR\rcustomerEmail\x12%\n" +
+	"\x0ecustomer_phone\x18\x06 \x01(\tR\rcustomerPhone\"\x83\x02\n" +
+	"\x17InitiatePaymentResponse\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\x05R\tpaymentId\x12#\n" +
+	"\rgateway_token\x18\x02 \x01(\tR\fgatewayToken\x120\n" +
+	"\x14gateway_redirect_url\x18\x03 \x01(\tR\x12gatewayRedirectUrl\x12\x1b\n" +
+	"\tva_number\x18\x04 \x01(\tR\bvaNumber\x12\x1e\n" +
+	"\vqr_code_url\x18\x05 \x01(\tR\tqrCodeUrl\x12\x1d\n" +
+	"\n" +
+	"expired_at\x18\x06 \x01(\tR\texpiredAt\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\"\xb0\x02\n" +
+	"\x0eWebhookRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12%\n" +
+	"\x0etransaction_id\x18\x02 \x01(\tR\rtransactionId\x12-\n" +
+	"\x12transaction_status\x18\x03 \x01(\tR\x11transactionStatus\x12!\n" +
+	"\fpayment_type\x18\x04 \x01(\tR\vpaymentType\x12!\n" +
+	"\fgross_amount\x18\x05 \x01(\tR\vgrossAmount\x12#\n" +
+	"\rsignature_key\x18\x06 \x01(\tR\fsignatureKey\x12!\n" +
+	"\ffraud_status\x18\a \x01(\tR\vfraudStatus\x12\x1f\n" +
+	"\vstatus_code\x18\b \x01(\tR\n" +
+	"statusCode\"\x0e\n" +
+	"\fEmptyPayment2\xc7\x02\n" +
+	"\x0ePaymentService\x12H\n" +
+	"\rCreatePayment\x12\x1d.payment.CreatePaymentRequest\x1a\x18.payment.PaymentResponse\x12T\n" +
+	"\x13GetPaymentByOrderId\x12#.payment.GetPaymentByOrderIdRequest\x1a\x18.payment.PaymentResponse\x12T\n" +
+	"\x0fInitiatePayment\x12\x1f.payment.InitiatePaymentRequest\x1a .payment.InitiatePaymentResponse\x12?\n" +
+	"\rHandleWebhook\x12\x17.payment.WebhookRequest\x1a\x15.payment.EmptyPaymentB\n" +
 	"Z\b../protob\x06proto3"
 
 var (
-	file_payment_proto_rawDescOnce sync.Once
-	file_payment_proto_rawDescData []byte
+	file_proto_payment_proto_rawDescOnce sync.Once
+	file_proto_payment_proto_rawDescData []byte
 )
 
-func file_payment_proto_rawDescGZIP() []byte {
-	file_payment_proto_rawDescOnce.Do(func() {
-		file_payment_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_payment_proto_rawDesc), len(file_payment_proto_rawDesc)))
+func file_proto_payment_proto_rawDescGZIP() []byte {
+	file_proto_payment_proto_rawDescOnce.Do(func() {
+		file_proto_payment_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_payment_proto_rawDesc), len(file_proto_payment_proto_rawDesc)))
 	})
-	return file_payment_proto_rawDescData
+	return file_proto_payment_proto_rawDescData
 }
 
-var file_payment_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_payment_proto_goTypes = []any{
-	(*OrderPayment)(nil),               // 0: payment.OrderPayment
+var file_proto_payment_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_payment_proto_goTypes = []any{
+	(*PaymentResponse)(nil),            // 0: payment.PaymentResponse
 	(*CreatePaymentRequest)(nil),       // 1: payment.CreatePaymentRequest
-	(*PaymentTransaction)(nil),         // 2: payment.PaymentTransaction
-	(*GetPaymentByOrderIdRequest)(nil), // 3: payment.GetPaymentByOrderIdRequest
-	(*EmptyPayment)(nil),               // 4: payment.EmptyPayment
+	(*GetPaymentByOrderIdRequest)(nil), // 2: payment.GetPaymentByOrderIdRequest
+	(*InitiatePaymentRequest)(nil),     // 3: payment.InitiatePaymentRequest
+	(*InitiatePaymentResponse)(nil),    // 4: payment.InitiatePaymentResponse
+	(*WebhookRequest)(nil),             // 5: payment.WebhookRequest
+	(*EmptyPayment)(nil),               // 6: payment.EmptyPayment
 }
-var file_payment_proto_depIdxs = []int32{
-	1, // 0: payment.PaymentService.PayOrder:input_type -> payment.CreatePaymentRequest
-	2, // 1: payment.PaymentService.Transaction:input_type -> payment.PaymentTransaction
-	3, // 2: payment.PaymentService.GetPaymentByOrderId:input_type -> payment.GetPaymentByOrderIdRequest
-	0, // 3: payment.PaymentService.PayOrder:output_type -> payment.OrderPayment
-	4, // 4: payment.PaymentService.Transaction:output_type -> payment.EmptyPayment
-	0, // 5: payment.PaymentService.GetPaymentByOrderId:output_type -> payment.OrderPayment
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+var file_proto_payment_proto_depIdxs = []int32{
+	1, // 0: payment.PaymentService.CreatePayment:input_type -> payment.CreatePaymentRequest
+	2, // 1: payment.PaymentService.GetPaymentByOrderId:input_type -> payment.GetPaymentByOrderIdRequest
+	3, // 2: payment.PaymentService.InitiatePayment:input_type -> payment.InitiatePaymentRequest
+	5, // 3: payment.PaymentService.HandleWebhook:input_type -> payment.WebhookRequest
+	0, // 4: payment.PaymentService.CreatePayment:output_type -> payment.PaymentResponse
+	0, // 5: payment.PaymentService.GetPaymentByOrderId:output_type -> payment.PaymentResponse
+	4, // 6: payment.PaymentService.InitiatePayment:output_type -> payment.InitiatePaymentResponse
+	6, // 7: payment.PaymentService.HandleWebhook:output_type -> payment.EmptyPayment
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_payment_proto_init() }
-func file_payment_proto_init() {
-	if File_payment_proto != nil {
+func init() { file_proto_payment_proto_init() }
+func file_proto_payment_proto_init() {
+	if File_proto_payment_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_payment_proto_rawDesc), len(file_payment_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_payment_proto_rawDesc), len(file_proto_payment_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_payment_proto_goTypes,
-		DependencyIndexes: file_payment_proto_depIdxs,
-		MessageInfos:      file_payment_proto_msgTypes,
+		GoTypes:           file_proto_payment_proto_goTypes,
+		DependencyIndexes: file_proto_payment_proto_depIdxs,
+		MessageInfos:      file_proto_payment_proto_msgTypes,
 	}.Build()
-	File_payment_proto = out.File
-	file_payment_proto_goTypes = nil
-	file_payment_proto_depIdxs = nil
+	File_proto_payment_proto = out.File
+	file_proto_payment_proto_goTypes = nil
+	file_proto_payment_proto_depIdxs = nil
 }
