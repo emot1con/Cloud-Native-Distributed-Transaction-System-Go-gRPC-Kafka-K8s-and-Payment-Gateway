@@ -2,7 +2,7 @@
 
 A modern, scalable microservices architecture built with Go, gRPC, Kafka, and PostgreSQL. This project implements a complete e-commerce platform with user authentication, product management, order processing, and payment handling.
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -41,7 +41,7 @@ A modern, scalable microservices architecture built with Go, gRPC, Kafka, and Po
                     └─────────────────────────────────────┘
 ```
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 go_microservice/
@@ -96,7 +96,7 @@ go_microservice/
     └── zookeeper.yaml      # Kubernetes Zookeeper config
 ```
 
-## 🚀 Services Overview
+##  Services Overview
 
 ### 1. Broker Service (API Gateway)
 The central entry point for all client requests.
@@ -142,17 +142,25 @@ Handles order creation and management.
 **Port:** `30001` (gRPC)
 
 ### 5. Payment Service
-Processes payments for orders.
+Handles payment processing with Midtrans payment gateway integration.
 
 **Features:**
-- Payment creation when order is placed
-- Transaction processing
-- Payment status management
-- Get payment by order ID
+- Midtrans Snap API integration for multiple payment methods
+- Payment initiation with token generation  
+- Webhook handling for payment notifications
+- Payment status synchronization with order service
+- Support for various payment channels (GoPay, OVO, DANA, Virtual Account, Credit Card, QRIS, etc.)
+- Automatic order status update on payment completion
+- SHA512 signature verification for webhook security
 
-**Port:** `60001` (gRPC)
+**Endpoints:**
+- GET /payment/:id - Get payment by order ID
+- POST /payment/initiate - Initiate Midtrans payment
+- POST /payment/webhook/midtrans - Handle payment webhooks
 
-## 📊 Database Schema
+**Port:** 60001 (gRPC)
+
+##  Database Schema
 
 ### Products Table
 ```sql
@@ -209,37 +217,37 @@ CREATE TABLE payments (
 ### Authentication
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/api/v1/auth/register` | Register new user | ❌ |
-| POST | `/api/v1/auth/login` | Login user | ❌ |
-| GET | `/api/v1/auth/refresh-token` | Refresh JWT token | 🔑 |
-| GET | `/api/v1/auth/google` | Google OAuth URL | ❌ |
-| GET | `/api/v1/auth/facebook` | Facebook OAuth URL | ❌ |
-| GET | `/api/v1/auth/github` | GitHub OAuth URL | ❌ |
-| GET | `/api/v1/oauth/google/callback` | Google OAuth callback | ❌ |
-| GET | `/api/v1/oauth/facebook/callback` | Facebook OAuth callback | ❌ |
-| GET | `/api/v1/oauth/github/callback` | GitHub OAuth callback | ❌ |
+| POST | `/api/v1/auth/register` | Register new user |  |
+| POST | `/api/v1/auth/login` | Login user |  |
+| GET | `/api/v1/auth/refresh-token` | Refresh JWT token |  |
+| GET | `/api/v1/auth/google` | Google OAuth URL |  |
+| GET | `/api/v1/auth/facebook` | Facebook OAuth URL |  |
+| GET | `/api/v1/auth/github` | GitHub OAuth URL |  |
+| GET | `/api/v1/oauth/google/callback` | Google OAuth callback |  |
+| GET | `/api/v1/oauth/facebook/callback` | Facebook OAuth callback |  |
+| GET | `/api/v1/oauth/github/callback` | GitHub OAuth callback |  |
 
 ### Products
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/product/?page={n}` | List products (paginated) | ❌ |
-| POST | `/product/` | Create product | ✅ |
-| PUT | `/product/?id={id}` | Update product | ✅ |
-| DELETE | `/product/?id={id}` | Delete product | ✅ |
+| GET | `/product/?page={n}` | List products (paginated) |  |
+| POST | `/product/` | Create product |  |
+| PUT | `/product/?id={id}` | Update product |  |
+| DELETE | `/product/?id={id}` | Delete product |  |
 
 ### Orders
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/order/` | Create order | ✅ |
-| GET | `/order/?offset={n}` | Get user orders | ✅ |
+| POST | `/order/` | Create order |  |
+| GET | `/order/?offset={n}` | Get user orders |  |
 
 ### Payments
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/payment/transaction` | Process payment | ✅ |
-| GET | `/payment/order/{order_id}` | Get payment by order ID | ✅ |
+| POST | `/payment/transaction` | Process payment |  |
+| GET | `/payment/order/{order_id}` | Get payment by order ID |  |
 
-## 🛠️ gRPC Services
+##  gRPC Services
 
 ### AuthService (User)
 ```protobuf
@@ -286,7 +294,7 @@ service PaymentService {
 }
 ```
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Go 1.21+
@@ -367,7 +375,7 @@ make down
    minikube service broker-service --url
    ```
 
-## 🔐 Environment Variables
+##  Environment Variables
 
 ### Broker Service
 ```env
@@ -393,13 +401,22 @@ FACEBOOK_CLIENT_SECRET=your_facebook_client_secret
 FACEBOOK_REDIRECT_URL=http://localhost:8080/api/v1/oauth/facebook/callback
 ```
 
-### Product/Order/Payment Service
+### Product/Order Service
 ```env
 DATABASE_URL=postgres://user:password@postgres:5432/microservice?sslmode=disable
 KAFKA_BROKER=kafka:9092
 ```
 
-## 🔧 Technologies Used
+### Payment Service
+```env
+DATABASE_URL=postgres://user:password@postgres:5432/microservice?sslmode=disable
+KAFKA_BROKER=kafka:9092
+MIDTRANS_SERVER_KEY=your-midtrans-server-key
+MIDTRANS_CLIENT_KEY=your-midtrans-client-key
+MIDTRANS_ENVIRONMENT=sandbox  # or production
+```
+
+##  Technologies Used
 
 | Technology | Purpose |
 |------------|---------|
@@ -413,21 +430,23 @@ KAFKA_BROKER=kafka:9092
 | **Kubernetes** | Container orchestration |
 | **JWT** | Authentication tokens |
 | **OAuth2** | Social login (Google, Facebook, GitHub) |
+| **Midtrans** | Payment gateway integration (Snap API) |
+| **Next.js** | Frontend framework (React-based) |
 | **Logrus** | Structured logging |
 
-## 📈 Features
+##  Features
 
-- ✅ **Microservices Architecture** - Loosely coupled, independently deployable services
-- ✅ **gRPC Communication** - High-performance RPC between services
-- ✅ **REST API Gateway** - Single entry point for clients
-- ✅ **JWT Authentication** - Secure token-based auth
-- ✅ **OAuth2 Integration** - Social login support
-- ✅ **Rate Limiting** - Protection against abuse
-- ✅ **Database Migrations** - Version-controlled schema changes
-- ✅ **Docker Support** - Containerized deployment
-- ✅ **Kubernetes Ready** - Cloud-native deployment
-- ✅ **Event-Driven** - Kafka for async communication
-- ✅ **Structured Logging** - JSON-formatted logs
+-  **Microservices Architecture** - Loosely coupled, independently deployable services
+-  **gRPC Communication** - High-performance RPC between services
+-  **REST API Gateway** - Single entry point for clients
+-  **JWT Authentication** - Secure token-based auth
+-  **OAuth2 Integration** - Social login support
+-  **Rate Limiting** - Protection against abuse
+-  **Database Migrations** - Version-controlled schema changes
+-  **Docker Support** - Containerized deployment
+-  **Kubernetes Ready** - Cloud-native deployment
+-  **Event-Driven** - Kafka for async communication
+-  **Structured Logging** - JSON-formatted logs
 
 ## 🧪 Testing
 
@@ -439,7 +458,7 @@ cd order && go test ./...
 cd payment && go test ./...
 ```
 
-## 📝 API Examples
+##  API Examples
 
 ### Register User
 ```bash
