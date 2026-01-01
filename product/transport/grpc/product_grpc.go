@@ -34,7 +34,7 @@ func (u *ProductGRPCServer) CreateProduct(ctx context.Context, req *proto.Produc
 }
 
 func (u *ProductGRPCServer) GetProduct(ctx context.Context, req *proto.GetProductRequest) (*proto.Product, error) {
-	product, err := u.service.GetUserByID(int(req.Id))
+	product, err := u.service.GetProductByID(int(req.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -76,14 +76,18 @@ func (u *ProductGRPCServer) DeleteProduct(ctx context.Context, req *proto.GetPro
 
 func GRPCListen() {
 	DB, err := db.Connect()
+	if err != nil {
+		logrus.Fatalf("failed to connect to database: %v", err)
+	}
+
+	if err := db.InitRedis(); err != nil {
+		logrus.Warnf("Redis initialization failed: %v. Continuing without cache.", err)
+	}
+
 	ctx := context.Background()
 	repo := repository.NewProductRepositoryImpl()
 	service := service.NewProductService(repo, DB, ctx)
 	connection := NewProductGRPCServer(service)
-
-	if err != nil {
-		logrus.Fatalf("failed to connect to database: %v", err)
-	}
 
 	lis, err := net.Listen("tcp", ":40001")
 	if err != nil {

@@ -44,6 +44,7 @@ services:
     restart: always
     depends_on:
       - postgres
+      - redis
     env_file:
       - ../product/.env
     networks:
@@ -145,5 +146,23 @@ services:
     ports:
       - "2181:2181"
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - app-tier
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
+  redis_data:
