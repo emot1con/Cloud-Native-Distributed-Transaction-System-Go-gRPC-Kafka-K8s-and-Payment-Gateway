@@ -16,7 +16,7 @@ spec:
         app: payment-service
     spec:
       containers:
-      - image: numpyh/payment:v1.4
+      - image: numpyh/payment:latest
         name: payment-service
         ports:
         - containerPort: 60001

@@ -16,7 +16,7 @@ spec:
         app: order-service
     spec:
       containers:
-      - image: numpyh/order:v1.1
+      - image: numpyh/order:latest
         name: order-service
         ports:
         - containerPort: 30001

@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"order/cmd/db"
 	"order/helper"
 	"order/proto"
 	"order/repository"
@@ -13,19 +15,26 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	orderCacheTTL     = 10 * time.Minute
+	orderListCacheTTL = 5 * time.Minute
+)
+
 type OrderService struct {
 	DB            *sql.DB
 	orderRepo     repository.OrderRepository
 	orderItemRepo repository.OrderItemsRepository
 	productRepo   repository.ProductRepository
+	ctx           context.Context
 }
 
-func NewOrderItemService(DB *sql.DB, orderRepo repository.OrderRepository, orderItemRepo repository.OrderItemsRepository, productRepo repository.ProductRepository) *OrderService {
+func NewOrderItemService(DB *sql.DB, orderRepo repository.OrderRepository, orderItemRepo repository.OrderItemsRepository, productRepo repository.ProductRepository, ctx context.Context) *OrderService {
 	return &OrderService{
 		DB:            DB,
 		orderRepo:     orderRepo,
 		orderItemRepo: orderItemRepo,
 		productRepo:   productRepo,
+		ctx:           ctx,
 	}
 }
 
@@ -121,6 +130,10 @@ func (u *OrderService) CreateOrder(payload *proto.CreateOrderRequest) (*proto.Or
 		logrus.Infof("Message sent to topic: %s partition: %d, offset: %d", topic, partition, offset)
 	}
 
+	if err := db.DeleteCacheByPattern(u.ctx, "orders:user*"); err != nil {
+		logrus.Warnf("Failed to invalidate product list cache: %v", err)
+	}
+
 	return &proto.OrderResponse{
 		Order: &proto.Order{
 			Id:         int32(orderID),
@@ -132,9 +145,25 @@ func (u *OrderService) CreateOrder(payload *proto.CreateOrderRequest) (*proto.Or
 }
 
 func (u *OrderService) GetOrderByUserID(payload *proto.GetOrderRequest) ([]*proto.Order, error) {
+	page := (payload.Offset / 15) + 1
+	key := db.RedisOrderKey(int(payload.UserId), int(page))
+
+	cachedList, err := db.GetCacheOrderList(u.ctx, key)
+	if err == nil {
+		logrus.Infof("Cache HIT for order list page: %d", page)
+		return cachedList, nil
+	}
+	logrus.Infof("Cache MISS for order list page: %d", page)
+
 	orderResponse, err := u.orderRepo.GetOrderByUserID(payload, u.DB)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := db.SetCache(u.ctx, key, orderResponse, orderListCacheTTL); err != nil {
+		logrus.Warnf("Failed to cache product list: %v", err)
+	} else {
+		logrus.Debugf("Product list page %d cached successfully", page)
 	}
 	return orderResponse, nil
 }
@@ -149,5 +178,14 @@ func (u *OrderService) UpdateOrderStatus(status string, orderID int) error {
 	if err := u.orderRepo.UpdateOrderStatus(status, orderID, tx); err != nil {
 		return err
 	}
+
+	if err := db.DeleteCacheByPattern(u.ctx, "orders:user*"); err != nil {
+		logrus.Warnf("Failed to invalidate product list cache: %v", err)
+	}
+
+	if err := db.DeleteCacheByPattern(u.ctx, "orders:user*"); err != nil {
+		logrus.Warnf("Failed to invalidate product list cache: %v", err)
+	}
+
 	return nil
 }

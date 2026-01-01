@@ -63,11 +63,13 @@ func GRPCListen() {
 
 	addr := []string{os.Getenv("KAFKA_BROKER_URL")}
 
+	ctx := context.Background()
+
 	orderRepo := repository.NewOrderRepositoryImpl()
 	orderItemRepo := repository.NewOrderItemsRepositoryImpl()
 	productRepo := repository.NewProductRepositoryImpl()
 
-	orderService := service.NewOrderItemService(DB, orderRepo, orderItemRepo, productRepo)
+	orderService := service.NewOrderItemService(DB, orderRepo, orderItemRepo, productRepo, ctx)
 	orderGRPC := NewOrderGRPCServer(orderService)
 
 	if err := kafka.ConnectProducer(addr); err != nil {
