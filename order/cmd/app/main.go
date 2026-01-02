@@ -1,6 +1,7 @@
 package main
 
 import (
+	"order/cmd/db"
 	"order/transport/grpc"
 	"sync"
 
@@ -10,6 +11,11 @@ import (
 func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.Info("Starting Application")
+
+	// Initialize Redis
+	if err := db.InitRedis(); err != nil {
+		logrus.Warnf("Redis initialization failed: %v. Continuing without cache.", err)
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(1)

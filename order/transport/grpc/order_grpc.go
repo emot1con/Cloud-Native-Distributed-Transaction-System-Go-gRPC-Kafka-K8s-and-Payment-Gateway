@@ -26,8 +26,6 @@ func NewOrderGRPCServer(service *service.OrderService) *OrderGRPCServer {
 }
 
 func (u *OrderGRPCServer) CreateOrder(ctx context.Context, req *proto.CreateOrderRequest) (*proto.OrderResponse, error) {
-	logrus.Info("create order")
-
 	order, err := u.service.CreateOrder(req)
 	if err != nil {
 		return nil, err
