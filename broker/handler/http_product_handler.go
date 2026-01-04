@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"broker/auth"
+	"broker/middleware"
 	"broker/proto"
 	"broker/repository"
 	"broker/types"
@@ -26,7 +26,7 @@ func (p *ProductHandler) RegisterRoutes(r *gin.Engine) {
 
 	// Protected routes (auth required)
 	productRoutes := r.Group("/product")
-	productRoutes.Use(auth.ProtectedEndpoint())
+	productRoutes.Use(middleware.ProtectedEndpoint())
 
 	productRoutes.POST("/", p.CreateProduct)
 	productRoutes.PUT("/", p.UpdateProduct)

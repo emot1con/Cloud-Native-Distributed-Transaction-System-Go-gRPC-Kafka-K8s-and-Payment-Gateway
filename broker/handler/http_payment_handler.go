@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"broker/auth"
+	"broker/middleware"
 	"broker/proto"
 	"broker/repository"
 	"strconv"
@@ -23,7 +23,7 @@ func NewPaymentHandler(repo repository.PaymentRepository) *PaymentHandler {
 func (u *PaymentHandler) RegisterRoutes(r *gin.Engine) {
 	// Protected routes (require auth)
 	paymentRoutes := r.Group("/payment")
-	paymentRoutes.Use(auth.ProtectedEndpoint())
+	paymentRoutes.Use(middleware.ProtectedEndpoint())
 	paymentRoutes.GET("/order/:order_id", u.GetPaymentByOrderId)
 	paymentRoutes.POST("/initiate", u.InitiatePayment)
 

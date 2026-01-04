@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"broker/auth"
+	"broker/middleware"
 	"broker/proto"
 	"broker/repository"
 	"strconv"
@@ -26,14 +26,14 @@ func NewOrderHandler(userRepo repository.UserRepository, productRepo repository.
 
 func (u *OrderHandler) RegisterRoutes(r *gin.Engine) {
 	orderRoutes := r.Group("/order")
-	orderRoutes.Use(auth.ProtectedEndpoint())
+	orderRoutes.Use(middleware.ProtectedEndpoint())
 
 	orderRoutes.POST("/", u.CreateOrder)
 	orderRoutes.GET("/", u.GetOrder)
 }
 
 func (u *OrderHandler) CreateOrder(c *gin.Context) {
-	userID, ok := c.Request.Context().Value(auth.UserKey).(int)
+	userID, ok := c.Request.Context().Value(middleware.UserKey).(int)
 	if !ok {
 		c.JSON(401, gin.H{"error": "User ID not found"})
 		return
@@ -69,7 +69,7 @@ func (u *OrderHandler) CreateOrder(c *gin.Context) {
 }
 
 func (u *OrderHandler) GetOrder(c *gin.Context) {
-	userID, ok := c.Request.Context().Value(auth.UserKey).(int)
+	userID, ok := c.Request.Context().Value(middleware.UserKey).(int)
 	if !ok {
 		c.JSON(401, gin.H{"error": "User ID not found"})
 		return
