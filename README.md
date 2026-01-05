@@ -26,7 +26,7 @@
 ┌────────────────────────────────────────────────────────────┐
 │                   API GATEWAY (Broker Service)             │
 │                         Port: 8080 / 30005 (K8s)           │
-│  • JWT/OAuth2 Authentication & Authorization                      │
+│  • JWT/OAuth2 Authentication & Authorization               │
 │  • Token Bucket Rate Limiter (Redis + Lua)                 │
 │  • HTTP → gRPC Translation Layer                           │
 │  • Request/Response Orchestration                          │
