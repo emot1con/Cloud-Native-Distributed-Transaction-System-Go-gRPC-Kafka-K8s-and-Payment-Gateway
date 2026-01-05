@@ -2,7 +2,7 @@
 
 > Production-grade distributed transaction system implementing event-driven architecture with gRPC inter-service communication, Kafka message streaming, Redis caching layer, and Kubernetes orchestration for order and payment processing at scale.
 
-**production-ready distributed system** showcasing:
+**Production-Ready Distributed System** showcasing:
 
 - ✅ **Event-Driven Architecture** with Kafka for async order-payment workflow
 - ✅ **gRPC Service Mesh** for high-performance inter-service communication
