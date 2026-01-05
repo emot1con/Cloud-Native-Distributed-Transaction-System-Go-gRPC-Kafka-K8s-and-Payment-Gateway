@@ -24,6 +24,8 @@ func (u *PaymentHandler) RegisterRoutes(r *gin.Engine) {
 	// Protected routes (require auth)
 	paymentRoutes := r.Group("/payment")
 	paymentRoutes.Use(middleware.ProtectedEndpoint())
+	paymentRoutes.Use(middleware.RateLimiterMiddleware(middleware.DefaultRateLimiterConfig()))
+
 	paymentRoutes.GET("/order/:order_id", u.GetPaymentByOrderId)
 	paymentRoutes.POST("/initiate", u.InitiatePayment)
 

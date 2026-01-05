@@ -9,6 +9,7 @@ import (
 type OrderRepository interface {
 	CreateOrder(payload *proto.CreateOrderRequest, price float64, tx *sql.Tx) (int, error)
 	GetOrderByUserID(payload *proto.GetOrderRequest, db *sql.DB) ([]*proto.Order, error)
+	GetOrderById(orderID int, userID int, db *sql.DB) (*proto.Order, error)
 	UpdateOrderStatus(status string, orderID int, tx *sql.Tx) error
 }
 
@@ -52,6 +53,28 @@ func (u *OrderRepositoryImpl) GetOrderByUserID(payload *proto.GetOrderRequest, d
 		orders = append(orders, order)
 	}
 	return orders, nil
+}
+
+func (u *OrderRepositoryImpl) GetOrderById(orderID int, userID int, db *sql.DB) (*proto.Order, error) {
+	SQL := "SELECT id, user_id, status, total_price, created_at, updated_at FROM orders WHERE id = $1 AND user_id = $2"
+	row := db.QueryRow(SQL, orderID, userID)
+
+	order := &proto.Order{}
+	if err := row.Scan(
+		&order.Id,
+		&order.UserId,
+		&order.Status,
+		&order.TotalPrice,
+		&order.CreatedAt,
+		&order.UpdatedAt,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Order not found
+		}
+		return nil, err
+	}
+
+	return order, nil
 }
 
 func (u *OrderRepositoryImpl) UpdateOrderStatus(status string, orderID int, tx *sql.Tx) error {

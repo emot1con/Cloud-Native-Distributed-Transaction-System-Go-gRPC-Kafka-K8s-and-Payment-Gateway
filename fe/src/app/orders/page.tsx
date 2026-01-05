@@ -16,7 +16,7 @@ export default function OrdersPage() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [offset, setOffset] = useState(0);
-  const pageSize = 10;
+  const pageSize = 15; // Match backend page size
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['orders', offset],

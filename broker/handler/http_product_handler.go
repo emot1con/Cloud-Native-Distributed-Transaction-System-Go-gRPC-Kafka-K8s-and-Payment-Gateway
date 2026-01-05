@@ -27,6 +27,7 @@ func (p *ProductHandler) RegisterRoutes(r *gin.Engine) {
 	// Protected routes (auth required)
 	productRoutes := r.Group("/product")
 	productRoutes.Use(middleware.ProtectedEndpoint())
+	productRoutes.Use(middleware.RateLimiterMiddleware(middleware.DefaultRateLimiterConfig()))
 
 	productRoutes.POST("/", p.CreateProduct)
 	productRoutes.PUT("/", p.UpdateProduct)

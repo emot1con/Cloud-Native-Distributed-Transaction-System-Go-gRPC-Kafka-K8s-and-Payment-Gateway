@@ -168,6 +168,37 @@ func (u *OrderService) GetOrderByUserID(payload *proto.GetOrderRequest) ([]*prot
 	return orderResponse, nil
 }
 
+func (u *OrderService) GetOrderById(payload *proto.GetOrderByIdRequest) (*proto.Order, error) {
+	// Try to get from cache first
+	key := db.RedisOrderByIdKey(int(payload.OrderId))
+
+	cachedOrder, err := db.GetCacheOrder(u.ctx, key)
+	if err == nil && cachedOrder != nil {
+		logrus.Infof("Cache HIT for order ID: %d", payload.OrderId)
+		return cachedOrder, nil
+	}
+	logrus.Infof("Cache MISS for order ID: %d", payload.OrderId)
+
+	// Get from database
+	order, err := u.orderRepo.GetOrderById(int(payload.OrderId), int(payload.UserId), u.DB)
+	if err != nil {
+		return nil, err
+	}
+
+	if order == nil {
+		return nil, errors.New("order not found")
+	}
+
+	// Cache the result
+	if err := db.SetCache(u.ctx, key, order, orderCacheTTL); err != nil {
+		logrus.Warnf("Failed to cache order: %v", err)
+	} else {
+		logrus.Debugf("Order ID %d cached successfully", payload.OrderId)
+	}
+
+	return order, nil
+}
+
 func (u *OrderService) UpdateOrderStatus(status string, orderID int) error {
 	tx, err := u.DB.Begin()
 	if err != nil {
@@ -179,12 +210,17 @@ func (u *OrderService) UpdateOrderStatus(status string, orderID int) error {
 		return err
 	}
 
+	// Invalidate order list cache (all users)
 	if err := db.DeleteCacheByPattern(u.ctx, "orders:user*"); err != nil {
-		logrus.Warnf("Failed to invalidate product list cache: %v", err)
+		logrus.Warnf("Failed to invalidate order list cache: %v", err)
 	}
 
-	if err := db.DeleteCacheByPattern(u.ctx, "orders:user*"); err != nil {
-		logrus.Warnf("Failed to invalidate product list cache: %v", err)
+	// Invalidate single order cache
+	orderCacheKey := db.RedisOrderByIdKey(orderID)
+	if err := db.DeleteCache(u.ctx, orderCacheKey); err != nil {
+		logrus.Warnf("Failed to invalidate order cache for ID %d: %v", orderID, err)
+	} else {
+		logrus.Infof("Successfully invalidated cache for order ID: %d", orderID)
 	}
 
 	return nil

@@ -14,6 +14,7 @@ import (
 type OrderRepository interface {
 	CreateOrder(*proto.CreateOrderRequest) (*proto.OrderResponse, error)
 	GetOrder(*proto.GetOrderRequest) (*proto.OrdersResponse, error)
+	GetOrderById(*proto.GetOrderByIdRequest) (*proto.OrderResponse, error)
 }
 
 type OrderRepositoryImpl struct {
@@ -51,4 +52,12 @@ func (u *OrderRepositoryImpl) GetOrder(payload *proto.GetOrderRequest) (*proto.O
 
 	logrus.Infof("Get the order by ID and pass to order service with user ID: %d", payload.UserId)
 	return u.client.GetOrder(ctx, payload)
+}
+
+func (u *OrderRepositoryImpl) GetOrderById(payload *proto.GetOrderByIdRequest) (*proto.OrderResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	logrus.Infof("Get order by ID: %d for user ID: %d", payload.OrderId, payload.UserId)
+	return u.client.GetOrderById(ctx, payload)
 }

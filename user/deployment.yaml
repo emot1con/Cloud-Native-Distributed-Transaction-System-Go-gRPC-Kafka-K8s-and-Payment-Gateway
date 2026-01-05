@@ -16,7 +16,7 @@ spec:
         app: user-service
     spec:
       containers:
-      - image: numpyh/user:latest
+      - image: numpyh/user-service:1
         name: user-service
         imagePullPolicy: Always
         ports:

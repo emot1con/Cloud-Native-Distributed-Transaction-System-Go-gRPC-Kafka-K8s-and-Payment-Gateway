@@ -62,12 +62,6 @@ func ProtectedEndpoint() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		// user, err := repo.GetUserByID(userID)
-		// if err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		// 	c.Abort()
-		// 	return
-		// }
 
 		ctx := c.Request.Context()
 		ctx = context.WithValue(ctx, UserKey, userID)

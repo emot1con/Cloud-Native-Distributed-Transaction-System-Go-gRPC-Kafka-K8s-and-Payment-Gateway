@@ -80,6 +80,24 @@ func GetCacheOrderList(ctx context.Context, key string) ([]*proto.Order, error) 
 	return result, nil
 }
 
+func GetCacheOrder(ctx context.Context, key string) (*proto.Order, error) {
+	data, err := RedisClient.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return nil, errors.New(cachedMiss)
+	} else if err != nil {
+		return nil, err
+	}
+
+	var result proto.Order
+	if err := json.Unmarshal([]byte(data), &result); err != nil {
+		return nil, err
+	}
+
+	logrus.Debugf("Cache hit for key: %s", key)
+
+	return &result, nil
+}
+
 func DeleteCache(ctx context.Context, key string) error {
 
 	if err := RedisClient.Del(ctx, key).Err(); err != nil {
@@ -115,5 +133,9 @@ func DeleteCacheByPattern(ctx context.Context, pattern string) error {
 }
 
 func RedisOrderKey(userID, page int) string {
-	return fmt.Sprintf("orders:user%dpage%d", userID, page)
+	return fmt.Sprintf("orders:user%d:page%d", userID, page)
+}
+
+func RedisOrderByIdKey(orderID int) string {
+	return fmt.Sprintf("order:id:%d", orderID)
 }

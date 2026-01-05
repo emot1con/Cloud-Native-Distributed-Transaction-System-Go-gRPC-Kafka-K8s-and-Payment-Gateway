@@ -24,9 +24,9 @@ export default function OrderPaymentPage() {
   // Get user info from auth store
   const user = useAuthStore((state) => state.user);
   
-  const { data: ordersData, isLoading, error, refetch } = useQuery({
-    queryKey: ['orders', 0],
-    queryFn: () => orderService.getOrders(0),
+  const { data: orderData, isLoading, error, refetch } = useQuery({
+    queryKey: ['order', orderId],
+    queryFn: () => orderService.getOrderById(orderId),
     enabled: !isNaN(orderId),
     refetchOnMount: 'always',
     staleTime: 0,
@@ -43,9 +43,8 @@ export default function OrderPaymentPage() {
   });
   
   const order = useMemo(() => {
-    if (!ordersData?.orders) return null;
-    return ordersData.orders.find(o => o.id === orderId);
-  }, [ordersData, orderId]);
+    return orderData?.order || null;
+  }, [orderData]);
 
   const handlePayWithMidtrans = async () => {
     // Prevent double-click and opening popup when already open

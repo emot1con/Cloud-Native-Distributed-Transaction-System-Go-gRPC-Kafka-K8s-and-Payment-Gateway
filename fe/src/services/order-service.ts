@@ -23,4 +23,13 @@ export const orderService = {
     const response = await api.get(`${config.endpoints.orders}?offset=${offset}`);
     return response.data;
   },
+
+  /**
+   * Get single order by ID
+   * @param orderId - Order ID
+   */
+  getOrderById: async (orderId: number): Promise<OrderResponse> => {
+    const response = await api.get(`${config.endpoints.orders}${orderId}`);
+    return response.data;
+  },
 };

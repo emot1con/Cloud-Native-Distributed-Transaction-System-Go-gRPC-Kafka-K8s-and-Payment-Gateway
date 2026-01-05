@@ -2,10 +2,12 @@ package routes
 
 import (
 	"broker/handler"
+	"broker/middleware"
 	"broker/repository"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func Routes() *gin.Engine {
@@ -19,6 +21,10 @@ func Routes() *gin.Engine {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: false,
 	}))
+
+	if err := middleware.InitRedis(); err != nil {
+		logrus.Warnf("Failed to start Redis: %v", err)
+	}
 
 	userRepo := repository.NewUserRepository()
 	userHandler := handler.NewUserHandler(userRepo)

@@ -27,9 +27,11 @@ func NewOrderHandler(userRepo repository.UserRepository, productRepo repository.
 func (u *OrderHandler) RegisterRoutes(r *gin.Engine) {
 	orderRoutes := r.Group("/order")
 	orderRoutes.Use(middleware.ProtectedEndpoint())
+	orderRoutes.Use(middleware.RateLimiterMiddleware(middleware.DefaultRateLimiterConfig()))
 
 	orderRoutes.POST("/", u.CreateOrder)
 	orderRoutes.GET("/", u.GetOrder)
+	orderRoutes.GET("/:id", u.GetOrderById)
 }
 
 func (u *OrderHandler) CreateOrder(c *gin.Context) {
@@ -97,4 +99,31 @@ func (u *OrderHandler) GetOrder(c *gin.Context) {
 	}
 
 	c.JSON(200, orders)
+}
+
+func (u *OrderHandler) GetOrderById(c *gin.Context) {
+	userID, ok := c.Request.Context().Value(middleware.UserKey).(int)
+	if !ok {
+		c.JSON(401, gin.H{"error": "User ID not found"})
+		return
+	}
+
+	orderID := c.Param("id")
+	id, err := strconv.Atoi(orderID)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid order ID"})
+		return
+	}
+
+	// Call order service via gRPC
+	order, err := u.orderRepo.GetOrderById(&proto.GetOrderByIdRequest{
+		OrderId: int32(id),
+		UserId:  int32(userID),
+	})
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, order)
 }

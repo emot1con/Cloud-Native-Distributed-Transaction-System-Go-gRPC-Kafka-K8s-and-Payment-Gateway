@@ -45,6 +45,17 @@ func (u *OrderGRPCServer) GetOrder(ctx context.Context, req *proto.GetOrderReque
 	}, nil
 }
 
+func (u *OrderGRPCServer) GetOrderById(ctx context.Context, req *proto.GetOrderByIdRequest) (*proto.OrderResponse, error) {
+	order, err := u.service.GetOrderById(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.OrderResponse{
+		Order: order,
+	}, nil
+}
+
 func (u *OrderGRPCServer) UpdateOrderStatus(ctx context.Context, req *proto.UpdateOrderStatusRequest) (*proto.EmptyOrder, error) {
 	if err := u.service.UpdateOrderStatus(req.Status, int(req.OrderId)); err != nil {
 		return nil, err
